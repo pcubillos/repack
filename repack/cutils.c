@@ -55,8 +55,8 @@ static PyObject *continuum(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the number of lines and spectrum size:                             */
-  nlines = PyArray_DIM(s,     0);
-  nwave  = PyArray_DIM(wnspec,0);
+  nlines = (int)PyArray_DIM(s,     0);
+  nwave  = (int)PyArray_DIM(wnspec,0);
   /* Wavenumber sampling rate:                                              */
   dwn = INDd(wnspec,1) - INDd(wnspec,0);
   /* Co-add line strengths to tabulated nearest neighbor wavenumber sample: */
@@ -107,7 +107,7 @@ static PyObject *dflag(PyObject *self, PyObject *args){
     return NULL;
 
   /* Get the spectrum size:                                                 */
-  nlines = PyArray_DIM(s, 0);
+  nlines = (int)PyArray_DIM(s, 0);
   /* Evaluate the Planck function:                                          */
   for (j=0; j<nlines; j++){
     i = INDi(isort,j);
