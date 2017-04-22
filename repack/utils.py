@@ -5,7 +5,8 @@ import scipy.constants as sc
 
 import constants as c
 
-here = os.path.dirname(os.path.realpath(__file__)) + "/"
+topdir = os.path.realpath(
+            os.path.dirname(os.path.realpath(__file__)) + "/..") + "/"
 
 def parsefile(lblfile):
   """
@@ -155,7 +156,7 @@ def read_lbl(lblfile, elow, g):
   return gf, Elow, wn
 
 
-def read_iso(mol, iso, isofile=here+"isotopes.dat"):
+def read_iso(mol, iso, isofile=topdir+"inputs/isotopes.dat"):
   """
   Read an isotopes info file.
 

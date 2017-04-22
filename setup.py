@@ -2,11 +2,11 @@ from numpy import get_include
 import os, re, sys
 from setuptools import setup, Extension
 
-#topdir = os.path.dirname(os.path.realpath(__file__))
-#sys.path.append(topdir + "/repack")
+topdir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(topdir + "/repack")
 import VERSION as ver
 
-srcdir = './'  # C-code source folder
+srcdir = './repack/'  # C-code source folder
 
 # Get all file from source dir:
 files = os.listdir(srcdir)

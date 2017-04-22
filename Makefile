@@ -11,7 +11,7 @@
 # This will display the exact commands being used for building, etc.
 #
 
-LIBDIR = ./
+LIBDIR = ./repack/
 
 # Set verbosity
 #
