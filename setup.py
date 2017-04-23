@@ -6,7 +6,7 @@ topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/repack")
 import VERSION as ver
 
-srcdir = './repack/'  # C-code source folder
+srcdir = './repack/utils/'  # C-code source folder
 
 # Get all file from source dir:
 files = os.listdir(srcdir)

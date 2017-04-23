@@ -1,5 +1,7 @@
 import scipy.constants as sc
 
+__all__ = ["kB", "amu", "e", "me", "N0", "C1", "C2", "C3"]
+
 # Boltzmann constant in erg K-1:
 kB  = sc.k * 1e7
 # Unified atomic mass in g:
@@ -16,6 +18,3 @@ N0 = sc.physical_constants[
 C1  = 4.0 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2  = sc.h * (sc.c * 100.0) / sc.k                            # cm K-1
 C3  = sc.pi * e**2 / (me * (100*sc.c)**2)                     # cm
-
-# Clean up top-level namespace:
-del(sc)

@@ -13,9 +13,8 @@ if sys.version_info.major == 3:
 else:
   import ConfigParser as configparser
 
-import cutils    as cu
-import utils     as u
-import constants as c
+from . import utils     as u
+from . import constants as c
 
 
 def parser(cfile):
@@ -54,6 +53,8 @@ def parser(cfile):
   # Input line-transition files:
   lblfiles = config.get(section, "lblfiles")
   lblfiles = lblfiles.split()
+  # Database type:
+  db = config.get(section, "dbtype")
   # Output file:
   outfile  = config.get(section, "outfile")
 
@@ -70,8 +71,7 @@ def parser(cfile):
   # Line-strength threshold:
   sthresh = config.getfloat(section, "sthresh")
 
-  return lblfiles, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh
-
+  return lblfiles, db, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh
 
 #root = "/home/pcubillos/ast/compendia/CubillosEtal2017_pyratbay/inputs/opacity/"
 #files =  [root + "14N-1H3__BYTe__00300-00400.trans",
@@ -83,7 +83,8 @@ def parser(cfile):
 #         ]
 
 
-def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
+def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
+           sthresh):
   """
   Re-pack line-transition data into lbl data for strong lines and
   continuum data for weak lines.
@@ -92,6 +93,8 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
   ----------
   files: List of strings
      List with line-transition file names.
+  dbtype: String
+    Database type (exomol or hitran).
   outfile: String
      Output file root name.
   tmin: Float
@@ -109,9 +112,6 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
   sthresh: Float
      Threshold tolerance level for weak/strong lines.
   """
-  # Set output file names:
-  lbl_out  = outfile + "_lbl.dat"
-  cont_out = outfile + "_continuum.dat"
 
   # Temperature sampling:
   ntemp = int((tmax-tmin)/dtemp + 1)
@@ -122,14 +122,15 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
   wnspec = np.linspace(wnmin, wnmax, nwave)
   continuum = np.zeros((nwave, ntemp), np.double)
 
-  # Output line-by-line file:
-  lbl = open(lbl_out, "wb")
-
+  if dbtype not in ["hitran", "exomol"]:
+    print("\n{:s}\n  Error: Invalid database, dbtype must be either hitran "
+          "or exomol.\n{:s}\n".format(70*":", 70*":"))
+    sys.exit(0)
   # Parse input files:
   nfiles = len(files)
   suff, mol, iso, pf, states = [], [],  [], [], []
   for i in np.arange(nfiles):
-    s, m, isot, p, st = u.parse_file(files[i])
+    s, m, isot, p, st = u.parse_file(files[i], dbtype)
     suff.append(s)
     mol.append(m)
     iso.append(isot)
@@ -137,8 +138,10 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
     states.append(st)
 
   if len(np.unique(mol)) > 1:
-    print("Error: Should be the same molecule.")
+    print("\n{:s}\n  Error: All input files must correspont to the same "
+          "molecule.\n{:s}\n".format(70*":", 70*":"))
     sys.exit(0)
+  mol = mol[0]
 
   # Parse isotopes:
   isotopes = np.unique(iso)
@@ -153,7 +156,7 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
     suffix.append(list((np.array(suff))[isoidx==i]))
 
   # Isotopic abundance ratio and mass:
-  iratio, imass = u.read_iso(mol[0], list(isotopes))
+  iratio, imass = u.read_iso(mol, list(isotopes), dbtype)
 
 
   # Read partition-function and states files:
@@ -171,6 +174,14 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
     elow.append(el)
     g.append(degen)
 
+  # Turn isotopes from string to integer data type:
+  isotopes = np.asarray(isotopes, int)
+
+  # Set output file names:
+  lbl_out  = "{:s}_{:s}_{:s}_lbl.dat".format(mol, dbtype, outfile)
+  cont_out = "{:s}_{:s}_{:s}_continuum.dat".format(mol, dbtype, outfile)
+  # Output line-by-line file:
+  lbl = open(lbl_out, "wb")
 
   # Read line-by-line files:
   while np.size(suffix) != 0:
@@ -219,7 +230,7 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
     flag = np.ones(len(iiso), int)
     ti = time.time()
     # Flag strong/weak lines:
-    cu.dflag(flag, wn, s/alphad, isort, alphad, sthresh)
+    u.dflag(flag, wn, s/alphad, isort, alphad, sthresh)
     tf = time.time()
     nlines = len(wn)
     print("{:.15f}  {:.15f}  {:.2f}%  {:,d}/{:,d}".
@@ -234,14 +245,14 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
     isort  = np.argsort(s/alphad)[::-1]
     flag2 = np.ones(len(iiso), int)
     ti = time.time()
-    cu.dflag(flag2, wn, s/alphad/np.sqrt(np.pi), isort, alphad, sthresh)
+    u.dflag(flag2, wn, s/alphad/np.sqrt(np.pi), isort, alphad, sthresh)
     tf = time.time()
     print("{:.15f}  {:.15f}  {:.2f}%  {:,d}/{:,d}".
      format(tf-ti, (tf-ti)/nlines, sum(1-flag2)*100./len(flag2), sum(flag2), nlines))
     # Update flag:
     flag = np.array(flag | flag2, bool)
-    print("{:.15f}  {:.15f}  {:.2f}%  {:,d}/{:,d}".
-     format(tf-ti, (tf-ti)/nlines, sum(1-flag)*100./len(flag), sum(flag), nlines))
+    print("Compression rate: {:.2f}%,  {:,d}/{:,d} lines.".
+          format(np.sum(1-flag)*100./len(flag), sum(flag), nlines))
 
     # Store weak lines to continuum file as function of temp:
     for t in np.arange(ntemp):
@@ -252,11 +263,11 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
       s = (c.C3 * gf*iratio[iiso]/Z[iiso] *
              np.exp(-c.C2*Elow/T) * (1-np.exp(-c.C2*wn/T)))
       # Continuum opacity in cm-1 amagat-1 (instead of cm2 molec-1):
-      cu.continuum(s[~flag], wn[~flag], continuum[:,t], wnspec)
+      u.continuum(s[~flag], wn[~flag], continuum[:,t], wnspec)
     # Store strong lines to LBL data file:
     indices = np.arange(nlines)[flag]
     for i in indices:
-      lbl.write(struct.pack("dddh", wn[i], Elow[i], gf[i], iiso[i]))
+      lbl.write(struct.pack("dddi", wn[i], Elow[i], gf[i], isotopes[iiso[i]]))
 
   # Close LBL file:
   lbl.close()
@@ -266,7 +277,7 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
   # Save Continuum data to file:
   with open(cont_out, "w") as f:
     # Write header:
-    f.write("@SPECIES\n{:s}\n\n".format(mol[0]))
+    f.write("@SPECIES\n{:s}\n\n".format(mol))
     f.write("@TEMPERATURES\n        ")
     for j in np.arange(ntemp):
         f.write(" {:10.0f}".format(temperature[j]))

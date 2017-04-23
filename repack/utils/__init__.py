@@ -1,10 +1,11 @@
 import sys, os
 
-__all__ = ["parser", "repack", "utils", "constants"]
+from .utilities import __all__
+from .utilities import *
 
-from . import utils
-from . import constants
-from .repack import *
+from .cutils import *
+__all__.append("dflag")
+__all__.append("continuum")
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
