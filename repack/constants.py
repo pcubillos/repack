@@ -17,3 +17,5 @@ C1  = 4.0 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2  = sc.h * (sc.c * 100.0) / sc.k                            # cm K-1
 C3  = sc.pi * e**2 / (me * (100*sc.c)**2)                     # cm
 
+# Clean up top-level namespace:
+del(sc)

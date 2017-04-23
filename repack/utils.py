@@ -8,7 +8,9 @@ import constants as c
 topdir = os.path.realpath(
             os.path.dirname(os.path.realpath(__file__)) + "/..") + "/"
 
-def parsefile(lblfile):
+__all__ = ["parse_file", "read_pf", "read_states", "read_lbl", "read_iso"]
+
+def parse_file(lblfile):
   """
   Extract info from an Exomol line-transition filename.
 
@@ -16,6 +18,7 @@ def parsefile(lblfile):
   ----------
   lblfile: String
      An Exomol trans file.
+
   Returns
   -------
   suffix: Strings
@@ -193,3 +196,11 @@ def read_iso(mol, iso, isofile=topdir+"inputs/isotopes.dat"):
         iratio[iso.index(info[1])] = info[2]
         imass [iso.index(info[1])] = info[3]
   return iratio, imass
+
+# Clean up top-level namespace--delete everything that isn't in __all__
+# or is a magic attribute, and that isn't a submodule of this package
+for varname in dir():
+    if not ((varname.startswith('__') and varname.endswith('__')) or
+            varname in __all__ ):
+        del locals()[varname]
+del(varname)
