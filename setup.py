@@ -1,3 +1,6 @@
+# Copyright (c) 2017 Patricio Cubillos and contributors.
+# repack is open-source software under the MIT license (see LICENSE).
+
 from numpy import get_include
 import os, re, sys
 from setuptools import setup, Extension

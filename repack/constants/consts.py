@@ -1,3 +1,6 @@
+# Copyright (c) 2017 Patricio Cubillos and contributors.
+# repack is open-source software under the MIT license (see LICENSE).
+
 import scipy.constants as sc
 
 __all__ = ["kB", "amu", "e", "me", "N0", "C1", "C2", "C3"]

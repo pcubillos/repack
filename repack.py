@@ -1,4 +1,8 @@
 #! /usr/bin/env python
+
+# Copyright (c) 2017 Patricio Cubillos and contributors.
+# repack is open-source software under the MIT license (see LICENSE).
+
 import sys
 import warnings
 

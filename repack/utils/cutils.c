@@ -1,4 +1,5 @@
 // Copyright (c) 2017 Patricio Cubillos and contributors.
+// repack is open-source software under the MIT license (see LICENSE).
 
 #include <Python.h>
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
