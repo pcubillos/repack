@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 import sys, os
 import struct
 import time
@@ -131,7 +129,7 @@ def repack(files, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh):
   nfiles = len(files)
   suff, mol, iso, pf, states = [], [],  [], [], []
   for i in np.arange(nfiles):
-    s, m, isot, p, st = u.parsefile(files[i])
+    s, m, isot, p, st = u.parse_file(files[i])
     suff.append(s)
     mol.append(m)
     iso.append(isot)
