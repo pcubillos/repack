@@ -1,7 +1,7 @@
 # repack
 Re-pack and Compress Line-transition Data for Ratiative-tranfer Calculations
 
-This code identifies the strong lines that dominate the spectrum from the large-majority of weaker lines.  The code returns a binary file with the strong lines (wavenumber, gf, Elow, and isotope ID), and an ascii file with the combined opacity of the weaker lines compressed into a cross-section file as function of wavenumber and temperature.  
+This code identifies the strong lines that dominate the spectrum from the large-majority of weaker lines.  The code returns a binary line-by-line (LBL) file with the strong lines info (wavenumber, Elow, gf, and isotope ID), and an ascii file with the combined contribution of the weaker lines compressed into a continuum extinction coefficient (in cm-1 amagat-1) as function of wavenumber and temperature.  
 
 ### Table of Contents
 * [Team Members](#team-members)
@@ -16,13 +16,7 @@ This code identifies the strong lines that dominate the spectrum from the large-
 
 ### Install and Compile
 ``repack`` is compatible with both Python2 and Python3, and runs (at least) in both Linux and OSX.  
-To obtain the repack code, clone this repository to your local machine with the following terminal commands:  
-```shell
-mkdir ctips_demo/  
-cd ctips_demo/  
-topdir=`pwd`
-```
-
+To obtain the ``repack`` code, clone this repository to your local machine with the following terminal commands:  
 ```shell
 # Clone the repository to your working directory:  
 git clone https://github.com/pcubillos/repack/
@@ -64,5 +58,5 @@ Please, be kind and acknowledge the effort of the authors by citing the article 
 ### License
 
 Copyright (c) 2017 Patricio Cubillos and contributors.
-repack is open-source software under the MIT license (see LICENSE).
+``repack`` is open-source software under the MIT license (see LICENSE).
 

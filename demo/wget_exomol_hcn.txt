@@ -1,0 +1,6 @@
+http://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.states.bz2
+http://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.trans.bz2
+http://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.pf
+http://exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.states.bz2
+http://exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.trans.bz2
+http://exomol.com/db/HCN/1H-13C-14N/Larner/1H-13C-14N__Larner.pf
