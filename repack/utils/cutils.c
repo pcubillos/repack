@@ -10,6 +10,7 @@
 #define INDd(a,i) *((double *)(PyArray_DATA(a) + i * PyArray_STRIDE(a, 0)))
 /* 1D integer ndarray:                                                      */
 #define INDi(a,i) *((int    *)(PyArray_DATA(a) + i * PyArray_STRIDE(a, 0)))
+#define INDb(a,i) *((_Bool  *)(PyArray_DATA(a) + i * PyArray_STRIDE(a, 0)))
 
 
 int
@@ -77,12 +78,12 @@ static PyObject *continuum(PyObject *self, PyObject *args){
 }
 
 
-PyDoc_STRVAR(dflag__doc__,
+PyDoc_STRVAR(flag__doc__,
 "Flag weak from strong line-transtion lines.                \n\
                                                             \n\
 Parameters                                                  \n\
 ----------                                                  \n\
-flag: 1D integer ndarray                                    \n\
+flag: 1D bool ndarray                                       \n\
    Output indicating the strong (1) and weak (0) lines.     \n\
 wn: 1D float ndarray                                        \n\
    Central wavenumber of the line transitions.              \n\
@@ -96,7 +97,7 @@ sthreash: Float                                             \n\
    Tolerance threshold to define weak from strong lines     \n\
 ");
 
-static PyObject *dflag(PyObject *self, PyObject *args){
+static PyObject *flag(PyObject *self, PyObject *args){
   PyArrayObject *flag, *wn, *s, *isort, *alphad;
   int i, j, k,              /* Auxilliary for-loop indices                  */
       nlines, imin, imax;
@@ -112,16 +113,16 @@ static PyObject *dflag(PyObject *self, PyObject *args){
   /* Evaluate the Planck function:                                          */
   for (j=0; j<nlines; j++){
     i = INDi(isort,j);
-    if (INDi(flag,i)){
+    if (INDb(flag,i)){
       /* Find limits                                                        */
       imin = bsfind(wn, INDd(wn,i)-6*INDd(alphad,i), 0, i);
       imax = bsfind(wn, INDd(wn,i)+6*INDd(alphad,i), i, nlines-1);
       /* Evaluate s against doppler:                                        */
       f = 1.0 / pow(INDd(alphad,i),2);
       for (k=imin; k<imax; k++){
-        if (INDi(flag,k) && k != i){
+        if (INDb(flag,k) && k != i){
           dop = exp(-f*pow(INDd(wn,k)-INDd(wn,i),2));
-          INDi(flag,k) = INDd(s,k) > sthresh * INDd(s,i) * dop;
+          INDb(flag,k) = INDd(s,k) > sthresh * INDd(s,i) * dop;
         }
       }
     }
@@ -136,7 +137,7 @@ PyDoc_STRVAR(cutils__doc__, "Repack C-utility functions.");
 /* A list of all the methods defined by this module.                        */
 static PyMethodDef cutils_methods[] = {
     {"continuum", continuum, METH_VARARGS, continuum__doc__},
-    {"dflag",     dflag,     METH_VARARGS, dflag__doc__},
+    {"flag",      flag,      METH_VARARGS, flag__doc__},
     {NULL,        NULL,      0,            NULL}                /* sentinel */
 };
 

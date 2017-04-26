@@ -3,7 +3,6 @@
 
 import sys, os
 import struct
-import time
 import warnings
 
 import scipy.interpolate as sip
@@ -75,15 +74,6 @@ def parser(cfile):
   sthresh = config.getfloat(section, "sthresh")
 
   return lblfiles, db, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, sthresh
-
-#root = "/home/pcubillos/ast/compendia/CubillosEtal2017_pyratbay/inputs/opacity/"
-#files =  [root + "14N-1H3__BYTe__00300-00400.trans",
-#          root + "14N-1H3__BYTe__00400-00500.trans",
-#          root + "14N-1H3__BYTe__00500-00600.trans",
-#          root + "15N-1H3__BYTe-15__00300-00400.trans",
-#          root + "15N-1H3__BYTe-15__00400-00500.trans",
-#          root + "15N-1H3__BYTe-15__00500-00600.trans",
-#         ]
 
 
 def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
@@ -212,15 +202,13 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
         wn   = np.hstack([wn,   wnumber[wnrange]])
         iiso = np.hstack([iiso, np.tile(j, np.sum(wnrange))])
     # Sort by wavelength:
-    print("Sorting")
     asort = np.argsort(wn)
     gf   = gf  [asort]
     Elow = Elow[asort]
     wn   = wn  [asort]
     iiso = iiso[asort]
 
-    print("Go on")
-    # Line strength:
+    # Low temperature line flagging:
     Z = np.zeros(niso)
     for j in np.arange(niso):
       Z[j] = z[j](tmin)
@@ -230,15 +218,15 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
     alphad = wn/(100*sc.c) * np.sqrt(2.0*c.kB*tmin / (imass[iiso]*c.amu))
     # Line-strength sorted in descending order:
     isort  = np.argsort(s/alphad)[::-1]
-    flag = np.ones(len(iiso), int)
-    ti = time.time()
+    flag = np.ones(len(iiso), bool)
+    print("Flagging lines at {:4.0f} K.".format(tmin))
     # Flag strong/weak lines:
-    u.dflag(flag, wn, s/alphad, isort, alphad, sthresh)
-    tf = time.time()
+    u.flag(flag, wn, s/alphad, isort, alphad, sthresh)
     nlines = len(wn)
-    print("{:.15f}  {:.15f}  {:.2f}%  {:,d}/{:,d}".
-     format(tf-ti, (tf-ti)/nlines, sum(1-flag)*100./len(flag), sum(flag), nlines))
-    # high temperature limit:
+    print("Compression rate:       {:.2f}%,  {:9,d}/{:10,d} lines.".
+          format(np.sum(1-flag)*100./len(flag), np.sum(flag), nlines))
+
+    # High temperature line flagging:
     Z = np.zeros(niso)
     for j in np.arange(niso):
       Z[j] = z[j](tmax)
@@ -246,16 +234,15 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
          np.exp(-c.C2*Elow/tmax) * (1-np.exp(-c.C2*wn/tmax)))
     alphad = wn/(100*sc.c) * np.sqrt(2.0*c.kB*tmax / (imass[iiso]*c.amu))
     isort  = np.argsort(s/alphad)[::-1]
-    flag2 = np.ones(len(iiso), int)
-    ti = time.time()
-    u.dflag(flag2, wn, s/alphad/np.sqrt(np.pi), isort, alphad, sthresh)
-    tf = time.time()
-    print("{:.15f}  {:.15f}  {:.2f}%  {:,d}/{:,d}".
-     format(tf-ti, (tf-ti)/nlines, sum(1-flag2)*100./len(flag2), sum(flag2), nlines))
+    print("Flagging lines at {:4.0f} K.".format(tmax))
+    flag2 = np.ones(len(iiso), bool)
+    u.flag(flag2, wn, s/alphad/np.sqrt(np.pi), isort, alphad, sthresh)
+    print("Compression rate:       {:.2f}%,  {:9,d}/{:10,d} lines.".
+          format(np.sum(1-flag2)*100./len(flag2), np.sum(flag2), nlines))
     # Update flag:
-    flag = np.array(flag | flag2, bool)
-    print("Compression rate: {:.2f}%,  {:,d}/{:,d} lines.".
-          format(np.sum(1-flag)*100./len(flag), sum(flag), nlines))
+    flag |= flag2
+    print("Total compression rate: {:.2f}%,  {:9,d}/{:10,d} lines.\n".
+          format(np.sum(1-flag)*100./len(flag), np.sum(flag), nlines))
 
     # Store weak lines to continuum file as function of temp:
     for t in np.arange(ntemp):
@@ -293,3 +280,7 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
       for j in np.arange(ntemp):
         f.write(" {:10.4e}".format(continuum[i,j]))
       f.write("\n")
+
+  print("Successfully rewriten {:s} line-transition info into:\n  '{:s}' and"
+        "\n  '{:s}'.".format(dbtype, lbl_out, cont_out))
+
