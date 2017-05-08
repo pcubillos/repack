@@ -279,6 +279,8 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
       lbl.write(struct.pack("dddi", wn[i], Elow[i], gf[i], isotopes[iiso[i]]))
 
   # Close LBL file:
+  print("Kept a total of {:,.0f} line transitions.".
+         format(lbl.tell()/struct.calcsize("dddi")))
   lbl.close()
 
   # Convert from cm2 molec-1 to cm-1 amagat-1:
