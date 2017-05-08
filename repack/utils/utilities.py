@@ -3,6 +3,8 @@
 
 import sys, os
 import re
+import zipfile, bz2
+
 import numpy as np
 import scipy.constants as sc
 
@@ -12,6 +14,47 @@ topdir = os.path.realpath(
             os.path.dirname(os.path.realpath(__file__)) + "/../..") + "/"
 
 __all__ = ["parse_file", "read_pf", "read_states", "read_lbl", "read_iso"]
+
+
+def fopen(filename):
+  """
+  Find out file compression format (if any) and open the file.
+
+  Parameters
+  ----------
+  filename: String
+     File name.
+
+  Returns
+  -------
+  file: FILE pointer
+  """
+  if   filename.endswith(".bz2"):
+    return bz2.BZ2File(filename, "r")
+  elif filename.endswith(".zip"):
+    zfile = zipfile.ZipFile(filename, "r")
+    # Zip files have to be unzipped to seek them:
+    fname = zfile.extract(zfile.namelist()[0])
+    zfile.close()
+    return open(fname, "r")
+  else:
+    return open(filename, "r")
+
+
+def fclose(filename):
+  """
+  Remove temporary files.
+
+  Parameters
+  ----------
+  filename: String
+     File name.
+  """
+  if filename.endswith(".zip"):
+    # Remove unzipped files:
+    with zipfile.ZipFile(filename, "r") as zfile:
+      os.remove(zfile.namelist()[0])
+
 
 def parse_file(lblfile, dbtype):
   """
@@ -47,7 +90,7 @@ def parse_file(lblfile, dbtype):
     else:
       suffix = ""
     sfile  = root + "/" + sfile
-    pffile = sfile.replace("states", "pf")
+    pffile = sfile.replace("states", "pf").strip(".bz2")
 
     # Get info from file name:
     s = file.split("_")[0].split("-")
@@ -95,7 +138,7 @@ def read_pf(pffile, dbtype="exomol"):
      The isotope names [returned only for pyrat dbtype].
   """
   # Read partition-function file:
-  with open(pffile, "r") as f:
+  with fopen(pffile) as f:
     lines = f.readlines()
 
   if dbtype == "exomol":
@@ -158,7 +201,7 @@ def read_states(states):
      State total statistical degeneracy.
   """
   # Read states file:
-  with open(states, "r") as f:
+  with fopen(states) as f:
     lines = f.readlines()
   nstates = len(lines)
   # Alocate outputs:
@@ -196,7 +239,7 @@ def read_lbl(lblfile, dbtype, elow=None, g=None):
   isoID: 1D integer ndarray
      isotope ID (for hitran dbtype).
   """
-  f = open(lblfile, "r")
+  f = fopen(lblfile)
   # Calculate file size:
   lenline = len(f.readline())
   f.seek(0,2)
@@ -235,6 +278,7 @@ def read_lbl(lblfile, dbtype, elow=None, g=None):
     gf = g * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
     isoID = (isoID - 1) % 10
 
+  fclose(lblfile)
   f.close()
   return gf, Elow, wn, isoID
 
