@@ -194,7 +194,7 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
         z.append(sip.interp1d(temp, part, kind='slinear'))
       # States:
       elow, degen = u.read_states(states[i])
-      lblargs.append([elow, degen, i])
+      lblargs.append([elow, degen, j])
 
   elif dbtype == "hitran":
     lblargs = [[None, None, None]]  # Trust me
