@@ -13,7 +13,8 @@ from .. import constants as c
 topdir = os.path.realpath(
             os.path.dirname(os.path.realpath(__file__)) + "/../..") + "/"
 
-__all__ = ["parse_file", "read_pf", "read_states", "read_lbl", "read_iso"]
+__all__ = ["parse_file", "read_pf", "read_states", "lbl", "wnbalance",
+           "count", "read_iso"]
 
 
 def fopen(filename):
@@ -39,21 +40,6 @@ def fopen(filename):
     return open(fname, "r")
   else:
     return open(filename, "r")
-
-
-def fclose(filename):
-  """
-  Remove temporary files.
-
-  Parameters
-  ----------
-  filename: String
-     File name.
-  """
-  if filename.endswith(".zip"):
-    # Remove unzipped files:
-    with zipfile.ZipFile(filename, "r") as zfile:
-      os.remove(zfile.namelist()[0])
 
 
 def parse_file(lblfile, dbtype):
@@ -213,74 +199,222 @@ def read_states(states):
   return elow, g
 
 
-def read_lbl(lblfile, dbtype, elow=None, g=None):
+class lbl():
+  def __init__(self, lblfile, dbtype, elow, g, iso):
+    """
+    Parameters
+    ----------
+    lblfile: String
+       A line-transition file.
+    dbtype: String
+       Database type (hitran or exomol).
+    elow: 1D float ndarray
+       The states energy (cm-1).
+    g: 1D float ndarray
+       The states total statistical degeneracy.
+    iso: Integer
+       The isotope index for this file (for Exomol data).
+    """
+    self.lblfile = lblfile                    # The file name
+    self.dbtype  = dbtype                     # Database type
+    self.file    = fopen(lblfile)             # The actual file
+    self.llen    = len(self.file.readline())  # length of lines in file
+    self.file.seek(0,2)
+    self.nlines  = int(self.file.tell()/self.llen)  # Number of lines
+    self.elow    = elow
+    self.g       = g
+    self.iso     = iso  # Isotope index
+
+  def bs(self, val, lo, hi):
+    """
+    Wavenumber binary search on database.
+
+    Parameters
+    ----------
+    val: Float
+       Target wavenumber value (in cm-1).
+    lo: Integer
+       Initial wavenumber index where to search.
+    hi: Integer
+       Final wavenumber index where to search.
+
+    Returns
+    -------
+    index: Integer
+       The index of the closest wavenumber entry to val.
+    """
+    # Out of bounds:
+    if val <= self.getwn(0):
+      return 0
+    if val >= self.getwn(self.nlines-1):
+      return self.nlines-1
+
+    # End case:
+    if hi-lo <= 1:
+      if np.abs(val-self.getwn(hi)) < np.abs(val-self.getwn(lo)):
+        return hi
+      return lo
+
+    # Half it:
+    mid = int(0.5*(hi+lo))
+    if self.getwn(mid) > val:
+      return self.bs(val, lo, mid)
+    return self.bs(val, mid, hi)
+
+
+  def getwn(self, index):
+    """
+    Extract wavenumber from file at the requested index.
+
+    Parameters
+    ----------
+    index: Integer
+       The wavenumber index in database to extract.
+    Returns
+    -------
+    wn: Float
+       The wavenumber (cm-1) at position index.
+    """
+    if   self.dbtype == "exomol":
+      self.file.seek(index*self.llen)
+      iup = int(self.file.read(12)) - 1
+      self.file.read(1)
+      ilo = int(self.file.read(12)) - 1
+      return self.elow[iup] - self.elow[ilo]
+
+    elif self.dbtype == "hitran":
+      self.file.seek(index*self.llen + 3)
+      return float(self.file.read(12))
+
+
+  def read(self, chunk):
+    """
+    Read a chunk of line transitions.
+
+    Parameters
+    ----------
+    chunk: Two-element tuple
+       Initial and final indices of the chunk to read.
+
+    Returns
+    -------
+    gf: 1D float ndarray
+       Transition weighted oscillator strength (unitless).
+    Elow: 1D float ndarray
+       Transition lower-state energy (cm-1).
+    wn: 1D float ndarray
+       Transition wavenumber (cm-1).
+    isoID: 1D integer ndarray
+       isotope ID (for hitran dbtype).
+    """
+    # Go to beginning of chunk:
+    self.file.seek(chunk[0]*self.llen)
+    nlines = chunk[1] - chunk[0]
+
+    # Extract info:
+    if self.dbtype == "exomol":
+      iup = np.zeros(nlines, int)
+      ilo = np.zeros(nlines, int)
+      A21 = np.zeros(nlines, np.double)
+      for i in np.arange(nlines):
+        line = self.file.readline()
+        iup[i] = line[ 0:12]
+        ilo[i] = line[13:25]
+        A21[i] = line[26:36]
+      iup -= 1
+      ilo -= 1
+      # Compute values:
+      wn   = self.elow[iup] - self.elow[ilo]
+      gf   = self.g[ilo] * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
+      Elow = self.elow[ilo]
+      isoID = np.tile(self.iso, np.size(wn))
+
+    elif self.dbtype == "hitran":
+      isoID = np.zeros(nlines,       int)
+      wn    = np.zeros(nlines, np.double)
+      A21   = np.zeros(nlines, np.double)
+      Elow  = np.zeros(nlines, np.double)
+      g     = np.zeros(nlines, np.double)
+      for i in np.arange(nlines):
+        line = self.file.readline()
+        isoID[i] = line[  2: 3]
+        wn   [i] = line[  3:15]
+        A21  [i] = line[ 25:35]
+        Elow [i] = line[ 45:55]
+        g    [i] = line[155:self.llen]
+      gf = g * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
+      isoID = (isoID - 1) % 10
+
+    return gf, Elow, wn, isoID
+
+
+  def close(self):
+    if self.lblfile.endswith(".zip"):
+      # Remove unzipped files:
+      with zipfile.ZipFile(self.lblfile, "r") as zfile:
+        os.remove(zfile.namelist()[0])
+    self.file.close()
+
+
+def wnbalance(lbls, wnmin, wnmax, targetsize, zero=0, tol=0.01):
   """
-  Read an Exomol line-transition file.
+  Binary search of wavenumber value (wntarget) such that there are
+  targetsize+zero line-transitions with wavenumber < wntarget.
 
   Parameters
   ----------
-  lblfile: String
-     An Exomol trans filename.
-  dbtype: String
-     Database type (hitran or exomol).
-  elow: 1D float ndarray
-     The states energy (cm-1).
-  g: 1D float ndarray
-     The states total statistical degeneracy.
+  lbls: List of lbl objects
+     Line by line objects.
+  wnmin: Float
+     Minimum wavenumber to consider
+  wnmax: Float
+     Maximum wavenumber to consider
+  targetsze: Integer
+     The desired number of transitions with wavenumber < wntarget.
+  zero: Integer
+     Zero offset number of transitions to discount.
+  tol: Float
+     Fractional tolerance level (w.r.t. targetsize) of to accept wntarget.
 
   Returns
   -------
-  gf: 1D float ndarray
-     Transition weighted oscillator strength (unitless).
-  Elow: 1D float ndarray
-     Transition lower-state energy (cm-1).
-  wn: 1D float ndarray
-     Transition wavenumber (cm-1).
-  isoID: 1D integer ndarray
-     isotope ID (for hitran dbtype).
+  wntarget: Float
+     The wavenumber that has targetsize transitions to the left.
   """
-  f = fopen(lblfile)
-  # Calculate file size:
-  lenline = len(f.readline())
-  f.seek(0,2)
-  nlines = int(f.tell()/lenline)
-  f.seek(0)
+  # Middle point between wn boundaries:
+  wntarget = 0.5*(wnmax + wnmin)
+  # Number of transitions with wn < wntarget:
+  ntarget  = count(lbls, wntarget)
 
-  # Extract info:
-  if dbtype == "exomol":
-    iup = np.zeros(nlines, int)
-    ilo = np.zeros(nlines, int)
-    A21 = np.zeros(nlines, np.double)
-    for i in np.arange(nlines):
-      line = f.readline()
-      iup[i] = line[ 0:12]
-      ilo[i] = line[13:25]
-      A21[i] = line[26:36]
-    # Compute values:
-    wn   = elow[iup-1] - elow[ilo-1]
-    gf   = g   [ilo-1] * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
-    Elow = elow[ilo-1]
-    isoID = None
+  if np.abs(ntarget-zero - targetsize) < tol*targetsize:
+    return wntarget
 
-  elif dbtype == "hitran":
-    isoID = np.zeros(nlines,       int)
-    wn    = np.zeros(nlines, np.double)
-    A21   = np.zeros(nlines, np.double)
-    Elow  = np.zeros(nlines, np.double)
-    g     = np.zeros(nlines, np.double)
-    for i in np.arange(nlines):
-      line = f.readline()
-      isoID[i] = line[  2: 3]
-      wn   [i] = line[  3:15]
-      A21  [i] = line[ 25:35]
-      Elow [i] = line[ 45:55]
-      g    [i] = line[155:lenline]
-    gf = g * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
-    isoID = (isoID - 1) % 10
+  elif ntarget-zero < targetsize:
+    return wnbalance(lbls, wntarget, wnmax,    targetsize, zero, tol)
+  else:
+    return wnbalance(lbls, wnmin,    wntarget, targetsize, zero, tol)
 
-  fclose(lblfile)
-  f.close()
-  return gf, Elow, wn, isoID
+
+def count(lbls, wntarget):
+  """
+  Count the number of line transitions with wavenumber smaller than wntarget.
+
+  Parameters
+  ----------
+  lbls: List of lbl objects
+  wntarget: Float
+     The target wavenumber.
+
+  Returns
+  -------
+  nwave: Integer
+     The number of transitions with wavenumber smaller than wntarget.
+  """
+  nwave = 0
+  for k in np.arange(len(lbls)):
+    nwave += lbls[k].bs(wntarget, 0, lbls[k].nlines-1)
+
+  return nwave
 
 
 def read_iso(mol, iso, dbtype="exomol", isofile=topdir+"inputs/isotopes.dat"):
