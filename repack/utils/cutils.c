@@ -72,7 +72,7 @@ static PyObject *continuum(PyObject *self, PyObject *args){
       j++;
     }
     /* and dilute by the wavenumber bin width:                              */
-    INDd(cont,i) = c/dwn;
+    INDd(cont,i) += c/dwn;
   }
   return Py_BuildValue("i", 1);
 }
