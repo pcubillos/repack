@@ -7,7 +7,11 @@ __all__ = ["parser", "repack", "utils", "constants"]
 
 from . import utils
 from . import constants
+from . import VERSION as ver
 from .repack import *
+
+__version__ = "{:d}.{:d}.{:d}".format(ver.repack_VER,
+                                      ver.repack_MIN, ver.repack_REV)
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
