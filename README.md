@@ -52,7 +52,7 @@ bzip2 -d *.bz2
 
 Please, be kind and acknowledge the effort of the authors by citing the article asociated to this project:  
 
-  [Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations](), submitted.  
+  [Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations](http://adsabs.harvard.edu/abs/2017arXiv171002556C), ApJ.  
 
 
 ### License
