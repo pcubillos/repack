@@ -1,13 +1,14 @@
 # Copyright (c) 2017 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
-import sys, os
+import sys
+import os
 import struct
 import warnings
-
+import subprocess
+import numpy as np
 import scipy.interpolate as sip
 import scipy.constants as sc
-import numpy as np
 
 # Config Parser changed between Python2 and Python3:
 if sys.version_info.major == 3:
@@ -148,8 +149,17 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
     pf.append(p)
     states.append(st)
 
+  # Uncompress states:
+  allstates = np.unique(states)
+  sdelete, sproc = [], []
+  for i in np.arange(len(allstates)):
+    if allstates[i].endswith(".bz2"):
+      proc = subprocess.Popen(["bzip2", "-dk", allstates[i]])
+      sproc.append(proc)
+      sdelete.append(os.path.realpath(allstates[i]).replace(".bz2", ""))
+
   if len(np.unique(mol)) > 1:
-    print("\n{:s}\n  Error: All input files must correspont to the same "
+    print("\n{:s}\n  Error: All input files must correspond to the same "
           "molecule.\n{:s}\n".format(70*":", 70*":"))
     sys.exit(0)
   mol = mol[0]
@@ -179,6 +189,23 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
         idx.append(i)
         s.remove(suffix)
     wnset.append(idx)
+  nsets = len(wnset)  # Number of wavenumber sets:
+
+  # Number of sets ahead to unzip:
+  zbuffer = 2
+  tdelete, tproc = [], []
+  for b in np.arange(zbuffer):
+    tdelete.append([])
+    tproc.append([])
+    for idx in wnset[b]:
+      if files[idx].endswith(".bz2"):
+        print("Unzipping: '{:s}'.".format(files[idx]))
+        proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
+        tproc[b].append(proc)
+        tdelete[b].append(files[idx].replace(".bz2", ""))
+
+  for i in np.arange(len(sproc)):
+    sproc[i].communicate()
 
   iso = np.zeros(nfiles, int)
   if dbtype == "exomol":
@@ -209,7 +236,22 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   lblf = open(lbl_out, "wb")
 
   # Read line-by-line files:
-  for i in np.arange(len(wnset)):
+  for i in np.arange(nsets):
+    # Make sure current files are uncompressed:
+    for p in tproc[i]:
+      p.communicate()
+    # Uncompress following set:
+    if zbuffer < nsets:
+      tdelete.append([])
+      tproc.append([])
+      for idx in wnset[zbuffer]:
+        if files[idx].endswith(".bz2"):
+          print("Unzipping: '{:s}'.".format(files[idx]))
+          proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
+          tproc[zbuffer].append(proc)
+          tdelete[zbuffer].append(files[idx].replace(".bz2", ""))
+      zbuffer += 1
+
     # Gather data from all files in this wavenumber range:
     lbl, istart, nlines = [], [], []
     for k in np.arange(len(wnset[i])):
@@ -323,6 +365,10 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
 
     for k in np.arange(len(wnset[i])):
       lbl[k].close()
+    # Delete unzipped sets:
+    for f in tdelete[i]:
+      os.remove(f)
+
 
   # Close LBL file:
   print("Kept a total of {:,.0f} line transitions.".
@@ -350,4 +396,8 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
 
   print("Successfully rewriten {:s} line-transition info into:\n  '{:s}' and"
         "\n  '{:s}'.".format(dbtype, lbl_out, cont_out))
+
+  # Delete unzipped set:
+  for f in sdelete:
+    os.remove(f)
 
