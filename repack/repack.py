@@ -214,7 +214,11 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
     # Read partition-function and states files:
     lblargs = []
     for j in np.arange(niso):
-      i = isotopes.index(isot[j])
+      try:
+        i = isot.index(isotopes[j])
+      except:
+        lblargs.append([None, None, None])  # placeholder
+        continue
       # Partition function:
       if pffile is None:
         temp, part = u.read_pf(pf[i], dbtype)
