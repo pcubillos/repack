@@ -3,7 +3,7 @@
 
 import sys, os
 import re
-import zipfile, bz2
+import zipfile
 
 import numpy as np
 import scipy.constants as sc
@@ -31,7 +31,7 @@ def fopen(filename):
   file: FILE pointer
   """
   if   filename.endswith(".bz2"):
-    return bz2.BZ2File(filename, "r")
+    return open(filename.replace(".bz2", ""), "r")
   elif filename.endswith(".zip"):
     zfile = zipfile.ZipFile(filename, "r")
     # Zip files have to be unzipped to seek them:
