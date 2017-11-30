@@ -1,9 +1,11 @@
 # Copyright (c) 2017 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
-import sys, os
+import sys
+import os
 import re
 import zipfile
+import struct
 
 import numpy as np
 import scipy.constants as sc
@@ -17,7 +19,7 @@ __all__ = ["parse_file", "read_pf", "read_states", "lbl", "wnbalance",
            "count", "read_iso"]
 
 
-def fopen(filename):
+def fopen(filename, mode="r"):
   """
   Find out file compression format (if any) and open the file.
 
@@ -31,15 +33,15 @@ def fopen(filename):
   file: FILE pointer
   """
   if   filename.endswith(".bz2"):
-    return open(filename.replace(".bz2", ""), "r")
+    return open(filename.replace(".bz2", ""), mode)
   elif filename.endswith(".zip"):
-    zfile = zipfile.ZipFile(filename, "r")
+    zfile = zipfile.ZipFile(filename, mode)
     # Zip files have to be unzipped to seek them:
     fname = zfile.extract(zfile.namelist()[0])
     zfile.close()
-    return open(fname, "r")
+    return open(fname, mode)
   else:
-    return open(filename, "r")
+    return open(filename, mode)
 
 
 def parse_file(lblfile, dbtype):
@@ -51,7 +53,7 @@ def parse_file(lblfile, dbtype):
   lblfile: String
      An Exomol trans file.
   dbtype: String
-     Database type (hitran or exomol).
+     Database type (hitran, exomol, or kurucz).
 
   Returns
   -------
@@ -77,7 +79,6 @@ def parse_file(lblfile, dbtype):
       suffix = ""
     sfile  = root + "/" + sfile
     pffile = sfile.replace("states", "pf").strip(".bz2")
-
     # Get info from file name:
     s = file.split("_")[0].split("-")
     molecule = ""
@@ -87,6 +88,7 @@ def parse_file(lblfile, dbtype):
       N = 1 if match.group(3) == "" else int(match.group(3))
       molecule += match.group(2) + match.group(3)
       isotope  += match.group(1)[-1:] * N
+
   elif dbtype == "hitran":
     hitempID = {"01":"H2O", "02":"CO2", "05":"CO", "08":"NO"}
     molID = file[0:2]
@@ -100,6 +102,12 @@ def parse_file(lblfile, dbtype):
     pffile  = None
     sfile   = None
 
+  elif dbtype == "kurucz":  # TiO is the only available molecule so far
+    molecule = "TiO"
+    suffix  = ""
+    isotope = None
+    pffile  = None
+    sfile   = None
   return suffix, molecule, isotope, pffile, sfile
 
 
@@ -217,8 +225,15 @@ class lbl():
     """
     self.lblfile = lblfile                    # The file name
     self.dbtype  = dbtype                     # Database type
-    self.file    = fopen(lblfile)             # The actual file
-    self.llen    = len(self.file.readline())  # length of lines in file
+
+    if dbtype == "kurucz":
+      self.file  = fopen(lblfile, "rb")
+      self.llen  = 16
+      self.ratiolog = np.log(1.0 + 1.0/2000000)
+      self.tablog   = 10.0**(0.001*(np.arange(32769) - 16384))
+    else:
+      self.file  = fopen(lblfile, "r")        # The actual file
+      self.llen  = len(self.file.readline())  # length of lines in file
     self.file.seek(0,2)
     self.nlines  = int(self.file.tell()/self.llen)  # Number of lines
     self.elow    = elow
@@ -286,6 +301,13 @@ class lbl():
       self.file.seek(index*self.llen + 3)
       return float(self.file.read(12))
 
+    elif self.dbtype == "kurucz":
+      # Note I'm reversing the indexing because this DB has decreasing wn:
+      self.file.seek((self.nlines-index-1)*self.llen)
+      # 4 = struct.calcsize("i")
+      iw = struct.unpack('i', self.file.read(4))[0]
+      return 1.0/(np.exp(iw * self.ratiolog) * c.nano)
+
 
   def read(self, chunk):
     """
@@ -344,6 +366,24 @@ class lbl():
         g    [i] = line[155:self.llen]
       gf = g * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
       isoID = (isoID - 1) % 10
+
+    elif self.dbtype == "kurucz":
+      iw   = np.zeros(nlines, int)
+      ieli = np.zeros(nlines, np.short)
+      ielo = np.zeros(nlines, np.short)
+      igf  = np.zeros(nlines, np.short)
+      i = 0
+      while i < nlines:
+        idx = self.nlines - 1 - (chunk[0]+i)  # Reverse indexing again
+        self.file.seek(idx*self.llen)
+        # 10 = struct.calcsize("ihhh")
+        iw[i], ieli[i], ielo[i], igf[i] = struct.unpack('ihhh',
+                                                        self.file.read(10))
+        i += 1
+      wn    = 1.0/(np.exp(iw * self.ratiolog) * c.nano)
+      gf    = self.tablog[igf]
+      isoID = np.abs(ieli) - 8950
+      Elow  = self.tablog[ielo]
 
     return gf, Elow, wn, isoID
 
@@ -443,7 +483,7 @@ def read_iso(mol, iso, dbtype="exomol", isofile=topdir+"inputs/isotopes.dat"):
   iratio = np.zeros(len(iso))
   imass  = np.zeros(len(iso))
 
-  if dbtype == "exomol":
+  if dbtype in ["exomol", "kurucz"]:  # Kurucz's TiO uses Exomol iso notation
     iiso = 2
   elif dbtype == "hitran":
     iiso = 1
