@@ -134,8 +134,8 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   continuum = np.zeros((nwave, ntemp), np.double)
 
   if dbtype not in ["hitran", "exomol"]:
-    print("\n{:s}\n  Error: Invalid database, dbtype must be either hitran "
-          "or exomol.\n{:s}\n".format(70*":", 70*":"))
+    print("\n{:s}\n  Error: Invalid database ({:s}), dbtype must be either "
+          "hitran or exomol.\n{:s}\n".format(70*":", dbtype, 70*":"))
     sys.exit(0)
 
   # Parse input files:
@@ -152,11 +152,12 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   # Uncompress states:
   allstates = np.unique(states)
   sdelete, sproc = [], []
-  for i in np.arange(len(allstates)):
-    if allstates[i].endswith(".bz2"):
-      proc = subprocess.Popen(["bzip2", "-dk", allstates[i]])
-      sproc.append(proc)
-      sdelete.append(os.path.realpath(allstates[i]).replace(".bz2", ""))
+  if allstates[0] is not None:
+    for i in np.arange(len(allstates)):
+      if allstates[i].endswith(".bz2"):
+        proc = subprocess.Popen(["bzip2", "-dk", allstates[i]])
+        sproc.append(proc)
+        sdelete.append(os.path.realpath(allstates[i]).replace(".bz2", ""))
 
   if len(np.unique(mol)) > 1:
     print("\n{:s}\n  Error: All input files must correspond to the same "
@@ -192,7 +193,7 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   nsets = len(wnset)  # Number of wavenumber sets:
 
   # Number of sets ahead to unzip:
-  zbuffer = 2
+  zbuffer = np.amin([2,nsets])
   tdelete, tproc = [], []
   for b in np.arange(zbuffer):
     tdelete.append([])
