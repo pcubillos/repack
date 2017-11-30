@@ -1,7 +1,17 @@
 # repack
 Re-pack and Compress Line-transition Data for Ratiative-tranfer Calculations
 
-This code identifies the strong lines that dominate the spectrum from the large-majority of weaker lines.  The code returns a binary line-by-line (LBL) file with the strong lines info (wavenumber, Elow, gf, and isotope ID), and an ascii file with the combined contribution of the weaker lines compressed into a continuum extinction coefficient (in cm-1 amagat-1) as function of wavenumber and temperature.  
+This code identifies the strong lines that dominate the spectrum from
+the large-majority of weaker lines.  The code returns a binary
+line-by-line (LBL) file with the strong lines info (wavenumber, Elow,
+gf, and isotope ID), and an ascii file with the combined contribution
+of the weaker lines compressed into a continuum extinction coefficient
+(in cm-1 amagat-1) as function of wavenumber and temperature.
+
+Currently available databases:
+* ExoMol (http://www.exomol.com/)
+* HITRAN (https://www.cfa.harvard.edu/hitran/)
+* Kurucz's TiO (http://kurucz.harvard.edu/molecules/tio)
 
 ### Table of Contents
 * [Team Members](#team-members)
@@ -52,7 +62,7 @@ bzip2 -d *.bz2
 
 Please, be kind and acknowledge the effort of the authors by citing the article asociated to this project:  
 
-  [Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations](http://adsabs.harvard.edu/abs/2017arXiv171002556C), ApJ.  
+  [Cubillos (2017): An Algorithm to Compress Line-transition Data for Radiative-transfer Calculations](http://adsabs.harvard.edu/abs/2017ApJ...850...32C), ApJ 850, 32.  
 
 
 ### License
