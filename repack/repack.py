@@ -133,9 +133,9 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   wnspec = np.linspace(wnmin, wnmax, nwave)
   continuum = np.zeros((nwave, ntemp), np.double)
 
-  if dbtype not in ["hitran", "exomol"]:
+  if dbtype not in ["hitran", "exomol", "kurucz"]:
     print("\n{:s}\n  Error: Invalid database ({:s}), dbtype must be either "
-          "hitran or exomol.\n{:s}\n".format(70*":", dbtype, 70*":"))
+          "hitran, exomol, or kurucz.\n{:s}\n".format(70*":", dbtype, 70*":"))
     sys.exit(0)
 
   # Parse input files:
@@ -228,7 +228,7 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
       elow, degen = u.read_states(states[i])
       lblargs.append([elow, degen, j])
 
-  elif dbtype == "hitran":
+  else:  #dbtype in ["hitran", "kurucz"]:
     lblargs = [[None, None, None]]  # Trust me
 
   # Turn isotopes from string to integer data type:
