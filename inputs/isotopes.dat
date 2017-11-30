@@ -4,6 +4,7 @@
 # HIT        HITRAN isotope ID   AFGL code
 # Exomol     Exomol isotope ID
 # Iso ratio  Isotopic ratio      Simeckova et al. (2006), Rothman et al. (2013)
+#                                Kurucz's rschwenk.for (TiO)
 # Iso mass   Isotopic mass (amu) Lide (2008) Handbook of chem.
 
 # Molecule  HIT   Exomol     Iso ratio    Iso mass
@@ -145,6 +146,10 @@ CS2         222   000        0            0
 CS2         224   000        0            0
 CS2         223   000        0            0
 CS2         232   000        0            0
-VO           00   16         1.0          1.0
-TiO          00   86         1.0          1.0
-FeH          00   61         1.0          1.0
+VO           00   16         0.0          66.9388741
+TiO          00   66         0.0793       61.9475462
+TiO          00   76         0.0728       62.9466777
+TiO          00   86         0.7394       63.9428609
+TiO          00   96         0.0551       64.9427846
+TiO          00   06         0.0534       65.9397058
+FeH          00   61         1.0          56.9427625
