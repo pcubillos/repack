@@ -1,11 +1,12 @@
 #! /usr/bin/env python
 
-# Copyright (c) 2017 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2018 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 import sys
 import warnings
 import time
+from datetime import date
 
 import repack as rep
 
@@ -18,9 +19,9 @@ if __name__ == "__main__":
   print("\n{:s}\n"
         "  repack: line-transition data compression.\n"
         "  Version {:s}.\n"
-        "  Copyright (c) 2017 Patricio Cubillos.\n"
+        "  Copyright (c) 2017-{:d} Patricio Cubillos.\n"
         "  repack is open-source software under the MIT license.\n"
-        "{:s}\n\n".format(":"*70, rep.__version__, ":"*70))
+        "{:s}\n\n".format(":"*70, rep.__version__, date.today().year, ":"*70))
 
   print("Starting: {:s}".format(time.ctime()))
   cfile =  sys.argv[1]
