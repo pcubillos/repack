@@ -6,6 +6,7 @@ import os
 import re
 import zipfile
 import struct
+import itertools
 
 import numpy as np
 import scipy.constants as sc
@@ -16,7 +17,7 @@ topdir = os.path.realpath(
             os.path.dirname(os.path.realpath(__file__)) + "/../..") + "/"
 
 __all__ = ["parse_file", "read_pf", "read_states", "lbl", "wnbalance",
-           "count", "read_iso"]
+           "count", "read_iso", "get_exomol_mol"]
 
 
 def fopen(filename, mode="r"):
@@ -80,14 +81,7 @@ def parse_file(lblfile, dbtype):
     sfile  = root + "/" + sfile
     pffile = sfile.replace("states", "pf").strip(".bz2")
     # Get info from file name:
-    s = file.split("_")[0].split("-")
-    molecule = ""
-    isotope  = ""
-    for i in np.arange(len(s)):
-      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", s[i], re.I)
-      N = 1 if match.group(3) == "" else int(match.group(3))
-      molecule += match.group(2) + match.group(3)
-      isotope  += match.group(1)[-1:] * N
+    molecule, isotope = get_exomol_mol(file)
 
   elif dbtype == "hitran":
     hitempID = {"01":"H2O", "02":"CO2", "05":"CO", "08":"NO"}
@@ -500,3 +494,54 @@ def read_iso(mol, iso, dbtype="exomol", isofile=topdir+"inputs/isotopes.dat"):
         iratio[iso.index(info[iiso])] = info[3]
         imass [iso.index(info[iiso])] = info[4]
   return iratio, imass
+
+
+def get_exomol_mol(dbfile):
+  """
+  Parse an exomol file to extract the molecule and isotope name.
+
+  Parameters
+  ----------
+  dbfile: String
+      An exomol line-list file (must follow ExoMol naming convention).
+
+  Returns
+  -------
+  molecule: String
+      Name of the molecule.
+  isotope: String
+      Name of the isotope (See Tennyson et al. 2016, jmosp, 327).
+
+  Examples
+  --------
+  >>> filenames = [
+  >>>     '1H2-16O__POKAZATEL__00400-00500.trans.bz2',
+  >>>     '1H-2H-16O__VTT__00250-00500.trans.bz2',
+  >>>     '12C-16O2__HITEMP.pf',
+  >>>     '12C-16O-18O__Zak.par',
+  >>>     '12C-1H4__YT10to10__01100-01200.trans.bz2',
+  >>>     '12C-1H3-2H__MockName__01100-01200.trans.bz2'
+  >>>    ]
+  >>> for db in filenames:
+  >>>     print(get_exomol_mol(db))
+  ('H2O', '116')
+  ('H2O', '126')
+  ('CO2', '266')
+  ('CO2', '268')
+  ('CH4', '21111')
+  ('CH4', '21112')
+  """
+  atoms = os.path.split(dbfile)[1].split("_")[0].split("-")
+  elements = []
+  isotope  = ""
+  for atom in atoms:
+      match = re.match(r"([0-9]+)([a-z]+)([0-9]*)", atom, re.I)
+      N = 1 if match.group(3) == "" else int(match.group(3))
+      elements += N * [match.group(2)]
+      isotope  += match.group(1)[-1:] * N
+
+  composition = [list(g[1]) for g in itertools.groupby(elements)]
+  molecule = "".join([c[0] + str(len(c))*(len(c)>1)
+                      for c in composition])
+
+  return molecule, isotope
