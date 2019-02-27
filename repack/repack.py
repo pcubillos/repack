@@ -1,10 +1,9 @@
-# Copyright (c) 2017-2018 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2019 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 import sys
 import os
 import struct
-import warnings
 import subprocess
 import numpy as np
 import scipy.interpolate as sip
@@ -12,9 +11,9 @@ import scipy.constants as sc
 
 # Config Parser changed between Python2 and Python3:
 if sys.version_info.major == 3:
-  import configparser
+    import configparser
 else:
-  import ConfigParser as configparser
+    import ConfigParser as configparser
 
 from . import utils     as u
 from . import constants as c
@@ -123,7 +122,6 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   chunksize: Integer
      Maximum size of chunks to read.
   """
-
   # Temperature sampling:
   ntemp = int((tmax-tmin)/dtemp + 1)
   temperature = np.linspace(tmin, tmax, ntemp)
@@ -142,27 +140,27 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   nfiles = len(files)
   suff, mol, isot, pf, states = [], [],  [], [], []
   for i in np.arange(nfiles):
-    s, m, iso, p, st = u.parse_file(files[i], dbtype)
-    suff.append(s)
-    mol.append(m)
-    isot.append(iso)
-    pf.append(p)
-    states.append(st)
+      s, m, iso, p, st = u.parse_file(files[i], dbtype)
+      suff.append(s)
+      mol.append(m)
+      isot.append(iso)
+      pf.append(p)
+      if st is not None:
+          states.append(st)
 
   # Uncompress states:
   allstates = np.unique(states)
   sdelete, sproc = [], []
-  if allstates[0] is not None:
-    for i in np.arange(len(allstates)):
-      if allstates[i].endswith(".bz2"):
-        proc = subprocess.Popen(["bzip2", "-dk", allstates[i]])
-        sproc.append(proc)
-        sdelete.append(os.path.realpath(allstates[i]).replace(".bz2", ""))
+  for state in allstates:
+      if state.endswith(".bz2"):
+          proc = subprocess.Popen(["bzip2", "-dk", state])
+          sproc.append(proc)
+          sdelete.append(os.path.realpath(state).replace(".bz2", ""))
 
   if len(np.unique(mol)) > 1:
-    print("\n{:s}\n  Error: All input files must correspond to the same "
-          "molecule.\n{:s}\n".format(70*":", 70*":"))
-    sys.exit(0)
+      print("\n{:s}\n  Error: All input files must correspond to the same "
+            "molecule.\n{:s}\n".format(70*":", 70*":"))
+      sys.exit(0)
   mol = mol[0]
 
   z = []  # Interpolator function for partition function per isotope
@@ -274,7 +272,7 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
       while iN < lbl[k].nlines-1 and lbl[k].getwn(iN+1) <= wnmin:
         iN += 1
       istart.append(i0)
-      nlines.append(iN-i0)
+      nlines.append(iN-i0+1)
 
     # Count lines, set target chunk size:
     nchunks = int(np.sum(nlines)/chunksize) + 1
@@ -377,7 +375,7 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
 
   # Close LBL file:
   print("Kept a total of {:,.0f} line transitions.".
-         format(lblf.tell()/struct.calcsize("dddi")))
+        format(lblf.tell()/struct.calcsize("dddi")))
   lblf.close()
 
   # Convert from cm2 molec-1 to cm-1 amagat-1:
@@ -405,4 +403,3 @@ def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
   # Delete unzipped set:
   for f in sdelete:
     os.remove(f)
-
