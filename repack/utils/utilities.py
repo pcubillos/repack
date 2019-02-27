@@ -1,6 +1,9 @@
 # Copyright (c) 2017-2018 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
+__all__ = ["parse_file", "read_pf", "read_states", "lbl", "wnbalance",
+           "count", "read_iso", "get_exomol_mol"]
+
 import sys
 import os
 import re
@@ -15,9 +18,6 @@ from .. import constants as c
 
 topdir = os.path.realpath(
             os.path.dirname(os.path.realpath(__file__)) + "/../..") + "/"
-
-__all__ = ["parse_file", "read_pf", "read_states", "lbl", "wnbalance",
-           "count", "read_iso", "get_exomol_mol"]
 
 
 def fopen(filename, mode="r"):
@@ -226,10 +226,11 @@ class lbl():
       self.ratiolog = np.log(1.0 + 1.0/2000000)
       self.tablog   = 10.0**(0.001*(np.arange(32769) - 16384))
     else:
-      self.file  = fopen(lblfile, "r")        # The actual file
-      self.llen  = len(self.file.readline())  # length of lines in file
+      self.file  = fopen(lblfile, "r")  # The actual file
+      dummy = self.file.readline()
+      self.llen = self.file.tell()      # Length of lines in file
     self.file.seek(0,2)
-    self.nlines  = int(self.file.tell()/self.llen)  # Number of lines
+    self.nlines  = int(self.file.tell()//self.llen)  # Number of lines
     self.elow    = elow
     self.g       = g
     self.iso     = iso  # Isotope index
@@ -326,17 +327,16 @@ class lbl():
     # Go to beginning of chunk:
     self.file.seek(chunk[0]*self.llen)
     nlines = chunk[1] - chunk[0]
-
     # Extract info:
     if self.dbtype == "exomol":
       iup = np.zeros(nlines, int)
       ilo = np.zeros(nlines, int)
       A21 = np.zeros(nlines, np.double)
-      for i in np.arange(nlines):
-        line = self.file.readline()
-        iup[i] = line[ 0:12]
-        ilo[i] = line[13:25]
-        A21[i] = line[26:36]
+      for i in range(nlines):
+          line = self.file.readline()
+          iup[i] = line[ 0:12]
+          ilo[i] = line[13:25]
+          A21[i] = line[26:36]
       iup -= 1
       ilo -= 1
       # Compute values:
