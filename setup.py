@@ -28,7 +28,7 @@ ela = []
 
 extensions = []
 for cfile in files:
-    e = Extension(cfile.rstrip('.c'),
+    e = Extension('repack.utils.'+cfile.rstrip('.c'),
                   sources=["{:s}{:s}".format(srcdir, cfile)],
                   include_dirs=inc,
                   extra_compile_args=eca,
