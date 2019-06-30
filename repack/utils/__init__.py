@@ -1,7 +1,8 @@
 # Copyright (c) 2017-2019 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
-import sys, os
+import sys
+import os
 
 from .utilities import __all__
 from .utilities import *
