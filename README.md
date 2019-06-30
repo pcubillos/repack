@@ -1,5 +1,8 @@
 # repack
-Re-pack and Compress Line-transition Data for Ratiative-tranfer Calculations
+Repack and Compress Line-transition Data for Ratiative-tranfer Calculations
+
+[![Build Status](https://travis-ci.com/pcubillos/repack.svg?branch=master)](https://travis-ci.com/pcubillos/repack)
+![GitHub](https://img.shields.io/github/license/pcubillos/repack.svg?color=blue)
 
 This code identifies the strong lines that dominate the spectrum from
 the large-majority of weaker lines.  The code returns a binary
@@ -25,7 +28,7 @@ Currently available databases:
 * [Patricio Cubillos](https://github.com/pcubillos/) (IWF) <patricio.cubillos@oeaw.ac.at>
 
 ### Install and Compile
-``repack`` is compatible with both Python2 and Python3, and runs (at least) in both Linux and OSX.  
+``repack`` is tested to work on Python 2.7, 3.6, and 3.7; and runs (at least) in both Linux and OSX.  
 To obtain the ``repack`` code, clone this repository to your local machine with the following terminal commands:  
 ```shell
 # Clone the repository to your working directory:  
@@ -67,6 +70,6 @@ Please, be kind and acknowledge the effort of the authors by citing the article 
 
 ### License
 
-Copyright (c) 2017-2018 Patricio Cubillos and contributors.
+Copyright (c) 2017-2019 Patricio Cubillos and contributors.
 ``repack`` is open-source software under the MIT license (see LICENSE).
 
