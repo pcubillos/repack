@@ -13,7 +13,7 @@ import numpy as np
 def test_hitemp_single_zip(capfd):
     subprocess.call(['python', '../repack.py', 'hitemp_repack_single_zip.cfg'])
     capfd = capfd.readouterr()
-    assert """Reading: '02_3750-4000_HITEMP2010.zip'.
+    assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
   Compression rate:       76.13%,     51,032/   213,769 lines.
   Flagging lines at  700 K:
