@@ -2,12 +2,9 @@ import os
 import sys
 import pytest
 
-import numpy as np
-
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 sys.path.append(ROOT)
 import repack.utils as u
-
 
 os.chdir(ROOT+'tests')
 
