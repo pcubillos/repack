@@ -13,5 +13,6 @@ install:
   - pip install -e .
   - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip && unzip 02_03750-04000_HITEMP2010.zip -d tests/
   - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip && unzip 02_04000-04500_HITEMP2010.zip -d tests/
+  - pwd
 
-script: pytest test
+script: pytest
