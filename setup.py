@@ -43,6 +43,7 @@ setup(name         = "repack",
       packages     = setuptools.find_packages(),
       install_requires = [
                      'numpy>=1.13.3',
+                     'scipy>=0.17.1',
                      ],
       license      = "MIT",
       description  = 'Repack line-transition data.',

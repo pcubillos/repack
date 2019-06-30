@@ -5,9 +5,9 @@ import subprocess
 
 import numpy as np
 
-ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
+#ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 
-os.chdir(ROOT+'tests')
+#os.chdir(ROOT+'tests')
 
 
 def test_hitemp_single_zip(capfd):
