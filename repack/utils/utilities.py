@@ -1,8 +1,16 @@
 # Copyright (c) 2017-2019 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
-__all__ = ["parse_file", "read_pf", "read_states", "lbl", "wnbalance",
-           "count", "read_iso", "get_exomol_mol"]
+__all__ = [
+    "parse_file",
+    "read_pf",
+    "read_states",
+    "lbl",
+    "wnbalance",
+    "count",
+    "read_iso",
+    "get_exomol_mol",
+    ]
 
 import sys
 import os
@@ -15,9 +23,6 @@ import numpy as np
 import scipy.constants as sc
 
 from .. import constants as c
-
-topdir = os.path.realpath(
-            os.path.dirname(os.path.realpath(__file__)) + "/../..") + "/"
 
 
 def fopen(filename, mode="r"):
@@ -451,7 +456,7 @@ def count(lbls, wntarget):
   return nwave
 
 
-def read_iso(mol, iso, dbtype="exomol", isofile=topdir+"inputs/isotopes.dat"):
+def read_iso(mol, iso, dbtype="exomol", isofile=c.ROOT+"inputs/isotopes.dat"):
   """
   Read an isotopes info file.
 
