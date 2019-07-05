@@ -230,7 +230,7 @@ class lbl():
       dummy = self.file.readline()
       self.llen = self.file.tell()      # Length of lines in file
     self.file.seek(0,2)
-    self.nlines  = int(self.file.tell()//self.llen)  # Number of lines
+    self.nlines  = self.file.tell() // self.llen  # Number of lines
     self.elow    = elow
     self.g       = g
     self.iso     = iso  # Isotope index
