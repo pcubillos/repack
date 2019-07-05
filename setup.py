@@ -35,7 +35,7 @@ for cfile in files:
                   extra_link_args=ela)
     extensions.append(e)
 
-setup(name         = "repack",
+setup(name         = "lbl-repack",
       version      = version,
       author       = "Patricio Cubillos",
       author_email = "patricio.cubillos@oeaw.ac.at",
@@ -47,6 +47,9 @@ setup(name         = "repack",
                      ],
       license      = "MIT",
       description  = 'Repack line-transition data.',
+      long_description=README,
+      long_description_content_type="text/markdown",
       include_dirs = inc,
+      entry_points={"console_scripts": ['repack = repack.__main__:main']},
       ext_modules  = extensions)
 
