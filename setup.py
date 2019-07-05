@@ -35,6 +35,9 @@ for cfile in files:
                   extra_link_args=ela)
     extensions.append(e)
 
+with open('README.md', 'r') as f:
+    readme = f.read()
+
 setup(name         = "lbl-repack",
       version      = version,
       author       = "Patricio Cubillos",
@@ -46,8 +49,8 @@ setup(name         = "lbl-repack",
                      'scipy>=0.17.1',
                      ],
       license      = "MIT",
-      description  = 'Repack line-transition data.',
-      long_description=README,
+      description  = 'A line-transition data compression package.',
+      long_description=readme,
       long_description_content_type="text/markdown",
       include_dirs = inc,
       entry_points={"console_scripts": ['repack = repack.__main__:main']},

@@ -11,7 +11,7 @@ os.chdir(ROOT+'tests')
 
 
 def test_exomol_single(capfd):
-    subprocess.call(['python', '../repack.py', 'exomol_repack_single.cfg'])
+    subprocess.call(['repack', 'exomol_repack_single.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
@@ -28,7 +28,7 @@ Successfully rewriten exomol line-transition info into:
 
 
 def test_exomol_two_files(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_two_files.cfg'])
+    subprocess.call(['repack', 'exomol_repack_two_files.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Unzipping: '14N-1H3__BYTe__00200-00300.trans.bz2'.
@@ -53,7 +53,7 @@ Successfully rewriten exomol line-transition info into:
 
 
 def test_exomol_two_isotopes(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_two_isotopes.cfg'])
+    subprocess.call(['repack', 'exomol_repack_two_isotopes.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Unzipping: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
@@ -72,7 +72,7 @@ Successfully rewriten exomol line-transition info into:
 
 
 def test_exomol_two_files_two_iso(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_two_two.cfg'])
+    subprocess.call(['repack', 'exomol_repack_two_two.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Unzipping: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
@@ -104,7 +104,7 @@ def test_exomol_single_unzip(capfd):
     # Unzip files before repacking:
     subprocess.call(['bzip2','-dk','14N-1H3__BYTe__00100-00200.trans.bz2'])
     subprocess.call(['bzip2','-dk','14N-1H3__BYTe.states.bz2'])
-    subprocess.call(['python','../repack.py','exomol_repack_single_unzip.cfg'])
+    subprocess.call(['repack', 'exomol_repack_single_unzip.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '14N-1H3__BYTe__00100-00200.trans'.
   Flagging lines at  500 K:
@@ -122,7 +122,7 @@ Successfully rewriten exomol line-transition info into:
 
 
 def test_exomol_single_chunks(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_single_chunks.cfg'])
+    subprocess.call(['repack', 'exomol_repack_single_chunks.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.

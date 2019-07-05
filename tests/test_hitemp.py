@@ -3,7 +3,7 @@ import subprocess
 
 
 def test_hitemp_single_zip(capfd):
-    subprocess.call(['python', '../repack.py', 'hitemp_repack_single_zip.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_single_zip.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
@@ -21,7 +21,7 @@ Successfully rewriten hitran line-transition info into:
 def test_hitemp_single_unzip(capfd):
     # Unzip files before repacking:
     subprocess.call(['unzip', '02_03750-04000_HITEMP2010.zip'])
-    subprocess.call(['python','../repack.py','hitemp_repack_single_unzip.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_single_unzip.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_3750-4000_HITEMP2010.par'.
   Flagging lines at  500 K:
@@ -39,7 +39,7 @@ Successfully rewriten hitran line-transition info into:
 
 
 def test_hitemp_two_files(capfd):
-    subprocess.call(['python','../repack.py','hitemp_repack_two.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_two.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
@@ -62,7 +62,7 @@ Successfully rewriten hitran line-transition info into:
 
 
 def test_hitemp_single_chunks(capfd):
-    subprocess.call(['python','../repack.py','hitemp_repack_single_chunks.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_single_chunks.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K (chunk 1/3):
