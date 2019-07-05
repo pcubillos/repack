@@ -89,39 +89,22 @@ def parser(cfile):
          sthresh, pffile, chunksize
 
 
-def repack(files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn,
-           sthresh, pffile=None, chunksize=15000000):
+def repack(cfile):
   """
   Re-pack line-transition data into lbl data for strong lines and
   continuum data for weak lines.
 
   Parameters
   ----------
-  files: List of strings
-     List with line-transition file names.
-  dbtype: String
-    Database type (exomol or hitran).
-  outfile: String
-     Output file root name.
-  tmin: Float
-     Minimum temperature to sample.
-  tmax: Float
-     Maximum temperature to sample.
-  dtemp: Float
-     Temperature sampling rate.
-  wnmin: Float
-     Minimum wavenumber (cm-1) to sample.
-  wnmax: Float
-     Maximum wavenumber (cm-1) to sample.
-  dwn: Float
-     Wavenumber sampling rate (cm-1).
-  sthresh: Float
-     Threshold tolerance level for weak/strong lines.
-  pffile: String
-     Input partition-function file (for HITRAN input dbtype).
-  chunksize: Integer
-     Maximum size of chunks to read.
+  cfile: String
+      A repack configuration file.
   """
+  # Parse configuration file:
+  print(cfile)
+  args = parser(cfile)
+  files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
+      sthresh, pffile, chunksize = args
+
   # Temperature sampling:
   ntemp = int((tmax-tmin)/dtemp + 1)
   temperature = np.linspace(tmin, tmax, ntemp)
