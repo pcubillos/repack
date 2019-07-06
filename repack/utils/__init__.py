@@ -4,12 +4,10 @@
 from .utilities import *
 from .cutils    import *
 
-from .utilities import __all__
-__all__ += [
-    "flag",
-    "continuum",
-    "flip",
-    ]
+__all__ = (
+    utilities.__all__
+  + ["flag", "continuum", "flip"]
+    )
 
 # Clean up top-level namespace--delete everything that isn't in __all__
 # or is a magic attribute, and that isn't a submodule of this package
