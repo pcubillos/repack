@@ -216,8 +216,8 @@ def repack(cfile):
   isotopes = np.asarray(isotopes, int)
 
   # Set output file names:
-  lbl_out  = "{:s}_{:s}_{:s}_lbl.dat".      format(mol, dbtype, outfile)
-  cont_out = "{:s}_{:s}_{:s}_continuum.dat".format(mol, dbtype, outfile)
+  lbl_out  = "{:s}_lbl.dat".      format(outfile)
+  cont_out = "{:s}_continuum.dat".format(outfile)
   # Output line-by-line file:
   lblf = open(lbl_out, "wb")
 
