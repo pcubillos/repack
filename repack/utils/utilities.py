@@ -52,7 +52,7 @@ def fopen(filename, mode="r"):
 
 def parse_file(lblfile, dbtype):
   """
-  Extract info from an Exomol line-transition filename.
+  Extract info from an Exomol, HITRAN, or Kurucz line-transition filename.
 
   Parameters
   ----------
