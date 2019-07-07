@@ -12,7 +12,9 @@ def test_hitemp_single_zip(capfd):
   Compression rate:       67.99%,     68,431/   213,769 lines.
   Total compression rate: 66.28%,     72,084/   213,769 lines.
 
-Kept a total of 72,084 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 72,084 line transitions out of 213,769 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out
@@ -30,7 +32,9 @@ def test_hitemp_single_unzip(capfd):
   Compression rate:       67.99%,     68,431/   213,769 lines.
   Total compression rate: 66.28%,     72,084/   213,769 lines.
 
-Kept a total of 72,084 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 72,084 line transitions out of 213,769 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out
@@ -55,7 +59,9 @@ Reading: '02_04000-04500_HITEMP2010.zip'.
   Compression rate:       18.99%,    111,996/   138,258 lines.
   Total compression rate: 18.73%,    112,367/   138,258 lines.
 
-Kept a total of 184,451 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 184,451 line transitions out of 138,258 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.2-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.2-2.6um_500-700K_continuum.dat'.""" in capfd.out
@@ -83,7 +89,9 @@ def test_hitemp_single_chunks(capfd):
   Compression rate:       56.81%,     30,775/    71,257 lines.
   Total compression rate: 55.50%,     31,708/    71,257 lines.
 
-Kept a total of 72,109 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 72,109 line transitions out of 213,769 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out

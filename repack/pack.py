@@ -339,10 +339,9 @@ def repack(cfile):
                 format(np.sum(1-flag)*100./len(flag), np.sum(flag), len(wn)))
 
           # Store weak lines to continuum file as function of temp:
-          for t in range(ntemp):
-              T = temperature[t]
+          for t,T in enumerate(temperature):
               for j in range(niso):
-                  Z[j] = z[j](temperature[t])
+                  Z[j] = z[j](T)
               # Line strength in cm molec-1
               s = (c.C3 * gf*iratio[iiso]/Z[iiso] *
                    np.exp(-c.C2*Elow/T) * (1-np.exp(-c.C2*wn/T)))
@@ -360,10 +359,10 @@ def repack(cfile):
       for f in tdelete[i]:
           os.remove(f)
 
-
   # Close LBL file:
-  print("Kept a total of {:,.0f} line transitions.".
-        format(lblf.tell()/struct.calcsize("dddi")))
+  print("With a threshold strength factor of {},\nkept a total of {:,.0f} "
+        "line transitions out of {:,.0f} lines.\n".
+        format(sthresh, lblf.tell()/struct.calcsize("dddi"), np.sum(nlines)))
   lblf.close()
 
   # Convert from cm2 molec-1 to cm-1 amagat-1:
