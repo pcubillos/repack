@@ -454,7 +454,7 @@ def count(lbls, wntarget):
   return nwave
 
 
-def read_iso(mol, iso, dbtype="exomol", isofile=c.ROOT+"inputs/isotopes.dat"):
+def read_iso(mol, iso, dbtype="exomol", isofile=c.ROOT+"repack/isotopes.dat"):
   """
   Read an isotopes info file.
 
