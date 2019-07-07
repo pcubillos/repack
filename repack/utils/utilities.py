@@ -10,6 +10,7 @@ __all__ = [
     "count",
     "read_iso",
     "get_exomol_mol",
+    "read_lbl",
     ]
 
 import os
@@ -548,3 +549,52 @@ def get_exomol_mol(dbfile):
                       for c in composition])
 
   return molecule, isotope
+
+
+def read_lbl(lbl_file):
+  """
+  Read a repack output LBL binary file.
+
+  Parameters
+  ----------
+  lbl_file: String
+      Path to file to read.
+
+  Returns
+  -------
+  wn: 1D float ndarray
+      Line transitions' wavenumber (in cm-1 units).
+  elow: 1D float ndarray
+      Line transitions' lower-state energy (in cm-1 units).
+  gf: 1D float ndarray
+      Line transitions' gf value (unitless).
+  iiso: 1D integer ndarray
+      Line transitions' isotope ID.
+
+  Examples
+  --------
+  >>> import repack.utils as u
+  >>> wn, elow, gf, iiso = u.read_lbl('HCN_exomol_0.3-33um_500-3000K_lbl.dat')
+  """
+  fmt = 'dddi'
+  fmtsize = struct.calcsize(fmt)
+
+  # Number of line transitions:
+  f = open(lbl_file, 'rb')
+  f.seek(0, 2)
+  nlines = f.tell() // fmtsize
+
+  # Allocate output arrays:
+  wn   = np.zeros(nlines, np.double)
+  elow = np.zeros(nlines, np.double)
+  gf   = np.zeros(nlines, np.double)
+  iiso = np.zeros(nlines, int)
+
+  # Read file:
+  f.seek(0)
+  for i in range(nlines):
+      wn[i], elow[i], gf[i], iiso[i] = struct.unpack(fmt, f.read(fmtsize))
+  f.close()
+
+  return wn, elow, gf, iiso
+
