@@ -47,6 +47,24 @@ def test_parse_file_kurucz():
     assert sfile is None
 
 
+def test_read_pf_exomol():
+    temp, pf = u.read_pf('14N-1H3__BYTe.pf', 'exomol')
+    np.testing.assert_equal(temp, np.linspace(1.0, 1600.0, 1600))
+    assert np.shape(pf) == (1600,)
+    assert pf[ 0] ==     3.8341
+    assert pf[-1] == 76420.3468
+
+
+def test_read_pf_pyrat():
+    temp, pf, iso = u.read_pf('PF_tips_CO2.dat', 'pyrat')
+    np.testing.assert_equal(temp, np.linspace(70.0, 3000.0, 294))
+    assert np.shape(pf) == (11,294)
+    assert pf[ 0, 0] == 62.559
+    assert pf[10, 293] == 3309200.0
+    np.testing.assert_equal(iso, np.array(['626', '636', '628', '627',
+        '638', '637', '828', '728', '727', '838', '837']))
+
+
 @pytest.mark.parametrize('db, molecule, isotope',
    [('1H2-16O__POKAZATEL__00400-00500.trans.bz2',   'H2O', '116'),
     ('1H-2H-16O__VTT__00250-00500.trans.bz2',       'H2O', '126'),

@@ -125,10 +125,35 @@ def read_pf(pffile, dbtype="exomol"):
   -------
   temp: 1D float ndarray
       Tabulated list of temperaures.
-  pf: 1D float ndarray
+  pf: 1D/2D float ndarray
       Partition-function values for each temperature.
-  isotopes: 1D float ndarray
+  isotopes: 1D string ndarray
       The isotope names [returned only for pyrat dbtype].
+
+  Examples
+  --------
+  >>> import repack.utils as u
+  >>> temp, pf = u.read_pf('14N-1H3__BYTe.pf', 'exomol')
+  >>> print(temp)
+  [1.000e+00 2.000e+00 3.000e+00 ... 1.598e+03 1.599e+03 1.600e+03]
+  >>> print(pf)
+  [3.83410000e+00 6.78330000e+00 8.21920000e+00 ... 7.60865408e+04
+   7.62532828e+04 7.64203468e+04]
+
+  >>> temp, pf, iso = u.read_pf('PF_tips_CO2.dat', 'pyrat')
+  >>> with np.printoptions(threshold=10):
+  >>>     print(temp)
+  [  70.   80.   90. ... 2980. 2990. 3000.]
+  >>> print(iso)
+  ['626' '636' '628' '627' '638' '637' '828' '728' '727' '838' '837']
+  >>> print(pf)
+  [[6.2559e+01 7.1483e+01 8.0410e+01 ... 1.0908e+05 1.1054e+05 1.1202e+05]
+   [1.2511e+02 1.4296e+02 1.6081e+02 ... 2.3478e+05 2.3794e+05 2.4114e+05]
+   [1.3258e+02 1.5150e+02 1.7042e+02 ... 2.3782e+05 2.4101e+05 2.4424e+05]
+   ...
+   [2.3929e+03 2.7343e+03 3.0758e+03 ... 4.2990e+06 4.3567e+06 4.4150e+06]
+   [1.4072e+02 1.6080e+02 1.8089e+02 ... 2.7920e+05 2.8297e+05 2.8679e+05]
+   [1.6410e+03 1.8751e+03 2.1094e+03 ... 3.2217e+06 3.2652e+06 3.3092e+06]]
   """
   # Read partition-function file:
   with fopen(pffile) as f:
