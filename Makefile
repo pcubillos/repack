@@ -11,7 +11,7 @@
 # This will display the exact commands being used for building, etc.
 #
 
-LIBDIR = ./repack/utils/
+LIBDIR = repack/utils/
 
 # Set verbosity
 #
@@ -27,7 +27,7 @@ endif
 all:
 	@echo "Building repack package."
 	$(Q)python setup.py build $(O)
-	@mv -f build/lib.*/*.so $(LIBDIR)
+	@mv -f build/lib.*/$(LIBDIR)/*.so ./$(LIBDIR)
 	@rm -rf build/
 	@echo "Successful compilation."
 
