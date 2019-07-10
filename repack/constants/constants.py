@@ -1,9 +1,23 @@
 # Copyright (c) 2017-2019 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
+__all__ = [
+    "kB",
+    "amu",
+    "e",
+    "me",
+    "N0",
+    "nano",
+    "C1",
+    "C2",
+    "C3",
+    "ROOT",
+    ]
+
+import os
+
 import scipy.constants as sc
 
-__all__ = ["kB", "amu", "e", "me", "N0", "nano", "C1", "C2", "C3"]
 
 # Boltzmann constant in erg K-1:
 kB  = sc.k * 1e7
@@ -24,3 +38,5 @@ nano = 1e-7
 C1  = 4.0 * sc.epsilon_0 * sc.m_e * sc.c**2 / sc.e**2 * 0.01  # cm-1
 C2  = sc.h * (sc.c * 100.0) / sc.k                            # cm K-1
 C3  = sc.pi * e**2 / (me * (100*sc.c)**2)                     # cm
+
+ROOT = os.path.realpath(os.path.dirname(__file__) + "/../..") + "/"

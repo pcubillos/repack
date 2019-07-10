@@ -1,0 +1,12 @@
+include MANIFEST.in
+include LICENSE
+include README.md
+include Makefile
+include requirements.txt
+include repack/isotopes.dat
+include repack/utils/cutils.c
+include demo/*
+include tests/*.cfg
+include tests/*.py
+include tests/PF_tips_CO2.dat
+

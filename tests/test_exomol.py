@@ -1,17 +1,12 @@
 import os
-import sys
-import pytest
 import subprocess
 
-import numpy as np
-
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-
 os.chdir(ROOT+'tests')
 
 
 def test_exomol_single(capfd):
-    subprocess.call(['python', '../repack.py', 'exomol_repack_single.cfg'])
+    subprocess.call(['repack', 'exomol_repack_single.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
@@ -21,14 +16,16 @@ Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
   Compression rate:       72.20%,    288,406/ 1,037,545 lines.
   Total compression rate: 70.61%,    304,908/ 1,037,545 lines.
 
-Kept a total of 304,908 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 304,908 line transitions out of 1,037,545 lines.
+
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
   'NH3_exomol_050-100um_500-700K_continuum.dat'.""" in capfd.out
 
 
 def test_exomol_two_files(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_two_files.cfg'])
+    subprocess.call(['repack', 'exomol_repack_two_files.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Unzipping: '14N-1H3__BYTe__00200-00300.trans.bz2'.
@@ -46,14 +43,16 @@ Reading: '14N-1H3__BYTe__00200-00300.trans.bz2'.
   Compression rate:       81.82%,    193,215/ 1,062,896 lines.
   Total compression rate: 80.62%,    206,002/ 1,062,896 lines.
 
-Kept a total of 510,910 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 510,910 line transitions out of 1,062,896 lines.
+
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_033-100um_500-700K_lbl.dat' and
   'NH3_exomol_033-100um_500-700K_continuum.dat'.""" in capfd.out
 
 
 def test_exomol_two_isotopes(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_two_isotopes.cfg'])
+    subprocess.call(['repack', 'exomol_repack_two_isotopes.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Unzipping: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
@@ -65,14 +64,16 @@ Reading: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
   Compression rate:       75.06%,    302,443/ 1,212,878 lines.
   Total compression rate: 73.26%,    324,263/ 1,212,878 lines.
 
-Kept a total of 324,263 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 324,263 line transitions out of 1,212,878 lines.
+
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
   'NH3_exomol_050-100um_500-700K_continuum.dat'.""" in capfd.out
 
 
 def test_exomol_two_files_two_iso(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_two_two.cfg'])
+    subprocess.call(['repack', 'exomol_repack_two_two.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Unzipping: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
@@ -94,7 +95,9 @@ Reading: '15N-1H3__BYTe-15__00200-00300.trans.bz2'.
   Compression rate:       83.77%,    200,355/ 1,234,214 lines.
   Total compression rate: 82.50%,    216,004/ 1,234,214 lines.
 
-Kept a total of 540,267 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 540,267 line transitions out of 1,234,214 lines.
+
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_033-100um_500-700K_lbl.dat' and
   'NH3_exomol_033-100um_500-700K_continuum.dat'.""" in capfd.out
@@ -104,7 +107,7 @@ def test_exomol_single_unzip(capfd):
     # Unzip files before repacking:
     subprocess.call(['bzip2','-dk','14N-1H3__BYTe__00100-00200.trans.bz2'])
     subprocess.call(['bzip2','-dk','14N-1H3__BYTe.states.bz2'])
-    subprocess.call(['python','../repack.py','exomol_repack_single_unzip.cfg'])
+    subprocess.call(['repack', 'exomol_repack_single_unzip.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '14N-1H3__BYTe__00100-00200.trans'.
   Flagging lines at  500 K:
@@ -113,7 +116,9 @@ def test_exomol_single_unzip(capfd):
   Compression rate:       72.20%,    288,406/ 1,037,545 lines.
   Total compression rate: 70.61%,    304,908/ 1,037,545 lines.
 
-Kept a total of 304,908 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 304,908 line transitions out of 1,037,545 lines.
+
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
   'NH3_exomol_050-100um_500-700K_continuum.dat'.""" in capfd.out
@@ -122,7 +127,7 @@ Successfully rewriten exomol line-transition info into:
 
 
 def test_exomol_single_chunks(capfd):
-    subprocess.call(['python','../repack.py','exomol_repack_single_chunks.cfg'])
+    subprocess.call(['repack', 'exomol_repack_single_chunks.cfg'])
     capfd = capfd.readouterr()
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
@@ -138,7 +143,9 @@ Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
   Compression rate:       75.71%,    125,996/   518,773 lines.
   Total compression rate: 74.25%,    133,574/   518,773 lines.
 
-Kept a total of 304,909 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 304,909 line transitions out of 1,037,545 lines.
+
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
   'NH3_exomol_050-100um_500-700K_continuum.dat'.""" in capfd.out

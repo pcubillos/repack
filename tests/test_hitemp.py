@@ -1,9 +1,12 @@
 import os
 import subprocess
 
+ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
+os.chdir(ROOT+'tests')
+
 
 def test_hitemp_single_zip(capfd):
-    subprocess.call(['python', '../repack.py', 'hitemp_repack_single_zip.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_single_zip.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
@@ -12,7 +15,9 @@ def test_hitemp_single_zip(capfd):
   Compression rate:       67.99%,     68,431/   213,769 lines.
   Total compression rate: 66.28%,     72,084/   213,769 lines.
 
-Kept a total of 72,084 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 72,084 line transitions out of 213,769 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out
@@ -21,7 +26,7 @@ Successfully rewriten hitran line-transition info into:
 def test_hitemp_single_unzip(capfd):
     # Unzip files before repacking:
     subprocess.call(['unzip', '02_03750-04000_HITEMP2010.zip'])
-    subprocess.call(['python','../repack.py','hitemp_repack_single_unzip.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_single_unzip.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_3750-4000_HITEMP2010.par'.
   Flagging lines at  500 K:
@@ -30,7 +35,9 @@ def test_hitemp_single_unzip(capfd):
   Compression rate:       67.99%,     68,431/   213,769 lines.
   Total compression rate: 66.28%,     72,084/   213,769 lines.
 
-Kept a total of 72,084 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 72,084 line transitions out of 213,769 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out
@@ -39,7 +46,7 @@ Successfully rewriten hitran line-transition info into:
 
 
 def test_hitemp_two_files(capfd):
-    subprocess.call(['python','../repack.py','hitemp_repack_two.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_two.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
@@ -55,14 +62,16 @@ Reading: '02_04000-04500_HITEMP2010.zip'.
   Compression rate:       18.99%,    111,996/   138,258 lines.
   Total compression rate: 18.73%,    112,367/   138,258 lines.
 
-Kept a total of 184,451 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 184,451 line transitions out of 138,258 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.2-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.2-2.6um_500-700K_continuum.dat'.""" in capfd.out
 
 
 def test_hitemp_single_chunks(capfd):
-    subprocess.call(['python','../repack.py','hitemp_repack_single_chunks.cfg'])
+    subprocess.call(['repack', 'hitemp_repack_single_chunks.cfg'])
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K (chunk 1/3):
@@ -83,7 +92,9 @@ def test_hitemp_single_chunks(capfd):
   Compression rate:       56.81%,     30,775/    71,257 lines.
   Total compression rate: 55.50%,     31,708/    71,257 lines.
 
-Kept a total of 72,109 line transitions.
+With a threshold strength factor of 0.01,
+kept a total of 72,109 line transitions out of 213,769 lines.
+
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out
