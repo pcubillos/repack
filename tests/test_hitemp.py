@@ -1,6 +1,9 @@
 import os
 import subprocess
 
+ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
+os.chdir(ROOT+'tests')
+
 
 def test_hitemp_single_zip(capfd):
     subprocess.call(['repack', 'hitemp_repack_single_zip.cfg'])

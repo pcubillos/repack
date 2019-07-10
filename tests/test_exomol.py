@@ -1,12 +1,7 @@
 import os
-import sys
-import pytest
 import subprocess
 
-import numpy as np
-
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
-
 os.chdir(ROOT+'tests')
 
 

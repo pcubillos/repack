@@ -1,8 +1,12 @@
+import os
 import pytest
 
 import numpy as np
 
 import repack.utils as u
+
+ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
+os.chdir(ROOT+'tests')
 
 
 @pytest.mark.parametrize('zip', ['', '.bz2'])

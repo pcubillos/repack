@@ -133,6 +133,8 @@ def read_pf(pffile, dbtype="exomol"):
   Examples
   --------
   >>> import repack.utils as u
+  >>> import numpy as np
+  >>> # See PF files in: https://github.com/pcubillos/repack/tree/master/tests
   >>> temp, pf = u.read_pf('14N-1H3__BYTe.pf', 'exomol')
   >>> print(temp)
   [1.000e+00 2.000e+00 3.000e+00 ... 1.598e+03 1.599e+03 1.600e+03]
