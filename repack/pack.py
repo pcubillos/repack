@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2020 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
@@ -225,6 +225,7 @@ def repack(cfile):
   # Output line-by-line file:
   lblf = open(lbl_out, "wb")
 
+  total_lines = 0
   # Read line-by-line files:
   for i in range(nsets):
       # Make sure current files are uncompressed:
@@ -358,11 +359,12 @@ def repack(cfile):
       # Delete unzipped sets:
       for f in tdelete[i]:
           os.remove(f)
+      total_lines += np.sum(nlines)
 
   # Close LBL file:
-  print("With a threshold strength factor of {},\nkept a total of {:,.0f} "
-        "line transitions out of {:,.0f} lines.\n".
-        format(sthresh, lblf.tell()/struct.calcsize("dddi"), np.sum(nlines)))
+  print(f"With a threshold strength factor of {sthresh},\n"
+        f"kept a total of {lblf.tell()/struct.calcsize('dddi'):,.0f} "
+        f"line transitions out of {total_lines:,.0f} lines.\n")
   lblf.close()
 
   # Convert from cm2 molec-1 to cm-1 amagat-1:
