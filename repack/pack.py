@@ -142,8 +142,12 @@ def repack(cfile):
       sthresh, pffile, chunksize, ncpu = args
 
   # Grid sampling for continuum:
-  ntemp = int((tmax-tmin)/dtemp + 1)
-  nwave = int((wnmax-wnmin)/dwn + 1)
+  if dwn != 0 and dtemp != 0:
+      ntemp = int((tmax-tmin)/dtemp + 1)
+      nwave = int((wnmax-wnmin)/dwn + 1)
+  else:
+      ntemp, nwave = 0, 0
+
   temperature = np.linspace(tmin, tmax, ntemp)
   wnspec      = np.linspace(wnmin, wnmax, nwave)
   continuum = np.zeros((nwave, ntemp), np.double)
