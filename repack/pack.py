@@ -10,15 +10,12 @@ import sys
 import os
 import struct
 import subprocess
-if sys.version_info.major == 3:
-    import configparser
-else:
-    import ConfigParser as configparser
+import configparser
+import multiprocessing as mp
 
 import numpy as np
 import scipy.interpolate as sip
 import scipy.constants as sc
-
 
 from . import utils     as u
 from . import constants as c
@@ -57,8 +54,10 @@ def parser(cfile):
       Input partition-function file (for HITRAN input dbtype).
   chunksize: Integer
       Maximum size of chunks to read.
+  ncpu: Integer
+      Number of parallel CPUs to use.
   """
-  config = configparser.SafeConfigParser()
+  config = configparser.ConfigParser()
   config.read([cfile])
   section = "REPACK"
   # Input line-transition files:
@@ -67,15 +66,20 @@ def parser(cfile):
   # Database type:
   db = config.get(section, "dbtype")
   # Output file:
-  outfile  = config.get(section, "outfile")
+  outfile = config.get(section, "outfile")
   # Partition-function file:
   pffile = None
   if config.has_option(section, "pffile"):
       pffile = config.get(section, "pffile")
-  # Max chunk size (default 15 million):
-  chunksize = 15000000
+  # Max chunk size:
+  chunksize = 5000000
   if config.has_option(section, "chunksize"):
-      chunksize = int(config.get(section, "chunksize"))
+      chunksize = config.getint(section, "chunksize")
+
+  ncpu = 1
+  if config.has_option(section, "ncpu"):
+      ncpu = config.getint(section, "ncpu")
+  ncpu = np.clip(ncpu, 1, mp.cpu_count()-1)
 
   # Temperature sampling:
   tmin  = config.getfloat(section, "tmin")
@@ -91,7 +95,35 @@ def parser(cfile):
   sthresh = config.getfloat(section, "sthresh")
 
   return lblfiles, db, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
-         sthresh, pffile, chunksize
+      sthresh, pffile, chunksize, ncpu
+
+
+def worker(input, output):
+    """
+    Doc me!
+    """
+    for args in iter(input.get, 'STOP'):
+        wn, gf, Elow, iiso, tmin, tmax, zmin, zmax, imass, \
+            iratio, sthresh, idx = args
+
+        # Low temperature line flagging:
+        s = (gf*iratio[iiso]/zmin[iiso] *
+             np.exp(-c.C2*Elow/tmin) * (1-np.exp(-c.C2*wn/tmin)))
+        alphad = wn/(100*sc.c) * np.sqrt(2.0*c.kB*tmin / (imass[iiso]*c.amu))
+        # Line-strength sorted in descending line-trength order:
+        isort = np.argsort(alphad/s)
+        flag = np.ones(len(iiso), bool)
+        u.flag(flag, wn, s/alphad, isort, alphad, sthresh)
+
+        # High temperature line flagging:
+        s = (gf*iratio[iiso]/zmax[iiso] *
+             np.exp(-c.C2*Elow/tmax) * (1-np.exp(-c.C2*wn/tmax)))
+        alphad = wn/(100*sc.c) * np.sqrt(2.0*c.kB*tmax / (imass[iiso]*c.amu))
+        isort = np.argsort(alphad/s)
+        flag2 = np.ones(len(iiso), bool)
+        u.flag(flag2, wn, s/alphad, isort, alphad, sthresh)
+
+        output.put((flag,flag2, wn, gf, Elow, iiso, idx))
 
 
 def repack(cfile):
@@ -107,20 +139,19 @@ def repack(cfile):
   # Parse configuration file:
   args = parser(cfile)
   files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
-      sthresh, pffile, chunksize = args
+      sthresh, pffile, chunksize, ncpu = args
 
-  # Temperature sampling:
+  # Grid sampling for continuum:
   ntemp = int((tmax-tmin)/dtemp + 1)
-  temperature = np.linspace(tmin, tmax, ntemp)
-
-  # Wavenumber sampling:
   nwave = int((wnmax-wnmin)/dwn + 1)
-  wnspec = np.linspace(wnmin, wnmax, nwave)
+  temperature = np.linspace(tmin, tmax, ntemp)
+  wnspec      = np.linspace(wnmin, wnmax, nwave)
   continuum = np.zeros((nwave, ntemp), np.double)
 
+  banner = 70 * ":"
   if dbtype not in ["hitran", "exomol", "kurucz"]:
-      print("\n{:s}\n  Error: Invalid database ({:s}), dbtype must be either "
-            "hitran, exomol, or kurucz.\n{:s}\n".format(70*":", dbtype, 70*":"))
+      print(f"\n{banner}\n  Error: Invalid database ({dbtype}), "
+            f"dbtype must be either hitran, exomol, or kurucz.\n{banner}\n")
       sys.exit(0)
 
   # Parse input files:
@@ -145,8 +176,8 @@ def repack(cfile):
           sdelete.append(os.path.realpath(state).replace(".bz2", ""))
 
   if len(np.unique(mol)) > 1:
-      print("\n{:s}\n  Error: All input files must correspond to the same "
-            "molecule.\n{:s}\n".format(70*":", 70*":"))
+      print(f"\n{banner}\n  Error: All input files must correspond to "
+            f"the same molecule.\n{banner}\n")
       sys.exit(0)
   mol = mol[0]
 
@@ -225,6 +256,12 @@ def repack(cfile):
   # Output line-by-line file:
   lblf = open(lbl_out, "wb")
 
+  # Create queues and start worker processes:
+  task_queue = mp.Queue()
+  done_queue = mp.Queue()
+  for i in range(ncpu):
+      mp.Process(target=worker, args=(task_queue, done_queue)).start()
+
   total_lines = 0
   # Read line-by-line files:
   for i in range(nsets):
@@ -279,8 +316,8 @@ def repack(cfile):
               zero = np.sum(chunk[:,n-1])
               wnchunk[n] = u.wnbalance(lbl, wnchunk[n-1], wnmax, target, zero)
               for k in range(len(wnset[i])):
-                  chunk[k,n] = lbl[k].bs(wnchunk[n], chunk[k,n-1],
-                                                     chunk[k,nchunks])
+                  chunk[k,n] = lbl[k].bs(
+                      wnchunk[n], chunk[k,n-1], chunk[k,nchunks])
 
       # Proccess chunks:
       for n in range(nchunks):
@@ -302,36 +339,28 @@ def repack(cfile):
           wn   = wn  [asort]
           iiso = iiso[asort]
 
+          zmin = np.array([z[j](tmin) for j in range(niso)])
+          zmax = np.array([z[j](tmax) for j in range(niso)])
+
+          args = (wn, gf, Elow, iiso, tmin, tmax, zmin, zmax,
+                  imass, iratio, sthresh, n)
+          task_queue.put(args)
+
+      collect_wn = []
+      collect_gf = []
+      collect_Elow = []
+      collect_iiso = []
+      chunk_idx = []
+      for n in range(nchunks):
+          flag, flag2, wn, gf, Elow, iiso, idx = done_queue.get()
+
           # Low temperature line flagging:
-          Z = np.zeros(niso)
-          for j in range(niso):
-              Z[j] = z[j](tmin)
-          s = (gf*iratio[iiso]/Z[iiso] *
-               np.exp(-c.C2*Elow/tmin) * (1-np.exp(-c.C2*wn/tmin)))
-          # Line Doppler width:
-          alphad = wn/(100*sc.c) * np.sqrt(2.0*c.kB*tmin / (imass[iiso]*c.amu))
-          # Line-strength sorted in descending order:
-          isort  = np.argsort(s/alphad)[::-1]
-          flag = np.ones(len(iiso), bool)
-          comment = ""
-          if nchunks > 1:
-              comment = " (chunk {}/{})".format(n+1, nchunks)
-          print("  Flagging lines at {:4.0f} K{:s}:".format(tmin, comment))
-          # Flag strong/weak lines:
-          u.flag(flag, wn, s/alphad, isort, alphad, sthresh)
+          comment = f" (chunk {n+1}/{nchunks})" if nchunks > 1 else ""
+          print(f"  Flagging lines at {tmin:4.0f} K{comment}:")
           print("  Compression rate:       {:.2f}%,  {:9,d}/{:10,d} lines.".
                 format(np.sum(1-flag)*100./len(flag), np.sum(flag), len(wn)))
-
           # High temperature line flagging:
-          for j in range(niso):
-              Z[j] = z[j](tmax)
-          s = (gf*iratio[iiso]/Z[iiso] *
-               np.exp(-c.C2*Elow/tmax) * (1-np.exp(-c.C2*wn/tmax)))
-          alphad = wn/(100*sc.c) * np.sqrt(2.0*c.kB*tmax / (imass[iiso]*c.amu))
-          isort  = np.argsort(s/alphad)[::-1]
-          print("  Flagging lines at {:4.0f} K:".format(tmax))
-          flag2 = np.ones(len(iiso), bool)
-          u.flag(flag2, wn, s/alphad/np.sqrt(np.pi), isort, alphad, sthresh)
+          print(f"  Flagging lines at {tmax:4.0f} K:")
           print("  Compression rate:       {:.2f}%,  {:9,d}/{:10,d} lines.".
                 format(np.sum(1-flag2)*100./len(flag2), np.sum(flag2), len(wn)))
           # Update flag:
@@ -341,18 +370,23 @@ def repack(cfile):
 
           # Store weak lines to continuum file as function of temp:
           for t,T in enumerate(temperature):
-              for j in range(niso):
-                  Z[j] = z[j](T)
+              Z = np.array([z[j](T) for j in range(niso)])
               # Line strength in cm molec-1
               s = (c.C3 * gf*iratio[iiso]/Z[iiso] *
                    np.exp(-c.C2*Elow/T) * (1-np.exp(-c.C2*wn/T)))
               # Continuum opacity in cm-1 amagat-1 (instead of cm2 molec-1):
               u.continuum(s[~flag], wn[~flag], continuum[:,t], wnspec)
           # Store strong lines to LBL data file:
-          indices = np.arange(len(wn))[flag]
-          for m in indices:
-              lblf.write(struct.pack("dddi", wn[m], Elow[m], gf[m],
-                                     isotopes[iiso[m]]))
+          collect_wn.append(wn[flag])
+          collect_gf.append(gf[flag])
+          collect_Elow.append(Elow[flag])
+          collect_iiso.append(iiso[flag])
+          chunk_idx.append(idx)
+
+      for n in np.argsort(chunk_idx):
+          for wn, gf, Elow, iiso in zip(collect_wn[n], collect_gf[n],
+                  collect_Elow[n], collect_iiso[n]):
+              lblf.write(struct.pack("dddi", wn, Elow, gf, isotopes[iiso]))
 
       for k in range(len(wnset[i])):
           lbl[k].close()
@@ -367,27 +401,32 @@ def repack(cfile):
         f"line transitions out of {total_lines:,.0f} lines.\n")
   lblf.close()
 
-  # Convert from cm2 molec-1 to cm-1 amagat-1:
-  continuum *= c.N0
-  # Save Continuum data to file:
-  with open(cont_out, "w") as f:
-      # Write header:
-      f.write("@SPECIES\n{:s}\n\n".format(mol))
-      f.write("@TEMPERATURES\n        ")
-      for temp in temperature:
-          f.write(" {:10.0f}".format(temp))
-      f.write("\n\n")
-      # Write the data:
-      f.write("# Wavenumber in cm-1, CIA coefficients in cm-1 amagat-1:\n")
-      f.write("@DATA\n")
-      for i in range(nwave):
-          f.write(" {:12.6f} ".format(wnspec[i]))
-          for j in range(ntemp):
-              f.write(" {:10.4e}".format(continuum[i,j]))
-          f.write("\n")
+  for i in range(ncpu):
+      task_queue.put('STOP')
 
-  print("Successfully rewriten {:s} line-transition info into:\n  '{:s}' and"
-        "\n  '{:s}'.".format(dbtype, lbl_out, cont_out))
+  if ntemp != 0:
+      # Convert from cm2 molec-1 to cm-1 amagat-1:
+      continuum *= c.N0
+      # Save Continuum data to file:
+      with open(cont_out, "w") as f:
+          # Write header:
+          f.write(f"@SPECIES\n{mol}\n\n")
+          f.write("@TEMPERATURES\n        ")
+          for temp in temperature:
+              f.write(f" {temp:10.0f}")
+          f.write("\n\n")
+          # Write the data:
+          f.write("# Wavenumber in cm-1, CIA coefficients in cm-1 amagat-1:\n")
+          f.write("@DATA\n")
+          for i in range(nwave):
+              f.write(f" {wnspec[i]:12.6f} ")
+              for j in range(ntemp):
+                  f.write(f" {continuum[i,j]:10.4e}")
+              f.write("\n")
+  cont_msg = f" and\n  '{cont_out}'" if ntemp != 0 else ""
+
+  print(f"Successfully rewriten {dbtype} line-transition info into:\n"
+        f"  '{lbl_out}'{cont_msg}.")
 
   # Delete unzipped set:
   for f in sdelete:
