@@ -21,16 +21,15 @@ Currently available databases:
 * [Patricio Cubillos](https://github.com/pcubillos/) (IWF) <patricio.cubillos@oeaw.ac.at>
 
 ### Install
-``repack`` has been [tested](https://travis-ci.com/pcubillos/repack) to work on Python 2.7, 3.6, and 3.7; and runs (at least) in both Linux and OSX.  You can install ``repack`` from the terminal with pip:
+``repack`` has been [tested](https://travis-ci.com/pcubillos/repack) to work on Python 3.6 and 3.7; and runs (at least) in both Linux and OSX.  You can install ``repack`` from the terminal with pip:
 
 ```shell
 # Note that on PyPI ``repack``is indexed as ``lbl-repack``:
 pip install lbl-repack
 ```
 
-Alternative (for conda users or for developers), you can directly
-dowload the source code and install to your local machine with the
-following terminal commands:
+Alternative (for developers), you can directly dowload the source code
+and install to your local machine with the following terminal commands:
 
 ```shell
 git clone https://github.com/pcubillos/repack/
@@ -65,7 +64,7 @@ lblfiles = 1H-12C-14N__Harris.trans.bz2
 dbtype = exomol
 
 # Output file name (without file extension):
-outfile = HCN_exomol_0.3-33um_500-3000K
+outfile = HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01
 
 # Wavenumber boundaries and sampling rate (in cm-1):
 wnmin =   303.0
@@ -73,15 +72,16 @@ wnmax = 33334.0
 dwn   =     1.0
 
 # Temperature sampling:
-tmin  =  500.0
+tmin  =  100.0
 tmax  = 3000.0
 dtemp =  100.0
 
 # Line-intensity threshold for strong/weak lines:
-sthresh = 0.1
+sthresh = 0.01
 
 # Maximum chunk size of lines to handle at a time:
-chunksize = 15000000
+chunksize = 5000000
+ncpu = 5
 ```
 
 And run ``repack``, which will produce the following screen output:
@@ -91,41 +91,41 @@ repack repack_HCN.cfg
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   repack: line-transition data compression.
-  Version 1.2.8.
-  Copyright (c) 2017-2019 Patricio Cubillos.
+  Version 1.4.0.
+  Copyright (c) 2017-2020 Patricio Cubillos.
   repack is open-source software under the MIT license.
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
-Starting: Sun Jul  7 19:52:28 2019
+Starting: Fri Apr  3 14:45:25 2020
 Unzipping: '1H-12C-14N__Harris.trans.bz2'.
 Unzipping: '1H-13C-14N__Larner.trans.bz2'.
 Reading: '1H-12C-14N__Harris.trans.bz2'.
 Reading: '1H-13C-14N__Larner.trans.bz2'.
-  Flagging lines at  500 K (chunk 1/5):
-  Compression rate:       98.13%,    247,715/13,241,389 lines.
+  Flagging lines at  100 K (chunk 1/14):
+  Compression rate:       96.82%,    148,123/ 4,662,663 lines.
   Flagging lines at 3000 K:
-  Compression rate:       96.17%,    506,751/13,241,389 lines.
-  Total compression rate: 95.11%,    648,132/13,241,389 lines.
+  Compression rate:       86.94%,    608,876/ 4,662,663 lines.
+  Total compression rate: 84.65%,    715,656/ 4,662,663 lines.
 
 ...
 
-  Flagging lines at  500 K (chunk 5/5):
-  Compression rate:       96.94%,    401,033/13,089,891 lines.
+  Flagging lines at  100 K (chunk 14/14):
+  Compression rate:       95.47%,    209,195/ 4,619,175 lines.
   Flagging lines at 3000 K:
-  Compression rate:       93.09%,    904,262/13,089,891 lines.
-  Total compression rate: 91.42%,  1,122,911/13,089,891 lines.
+  Compression rate:       75.15%,  1,147,751/ 4,619,175 lines.
+  Total compression rate: 73.24%,  1,236,054/ 4,619,175 lines.
 
-With a threshold strength factor of 0.1,
-kept a total of 3,009,610 line transitions out of 65,586,274 lines.
+With a threshold strength factor of 0.01,
+kept a total of 7,549,234 line transitions out of 65,586,274 lines.
 
 Successfully rewriten exomol line-transition info into:
-  'HCN_exomol_0.3-33um_500-3000K_lbl.dat' and
-  'HCN_exomol_0.3-33um_500-3000K_continuum.dat'.
-End: Sun Jul  7 19:59:59 2019
+  'HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01_lbl.dat' and
+  'HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01_continuum.dat'.
+End: Fri Apr  3 14:51:06 2020
 ```
 
-The output binary file '*HCN_exomol_0.3-33um_500-3000K_lbl.dat*'
+The output binary file '*HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01_lbl.dat*'
 contains the line-by-line opacity information for HCN, which represent
 most of the opacity contribution into the spectrum.  The information
 is encoded as a sequence of three doubles and an integer containing
@@ -135,10 +135,10 @@ info can be easily read with the following python script:
 
 ```python
 import repack.utils as u
-wn, elow, gf, iiso = u.read_lbl('HCN_exomol_0.3-33um_500-3000K_lbl.dat')
+wn, elow, gf, iiso = u.read_lbl('HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01_lbl.dat')
 ```
 
-The output ascii file '*HCN_exomol_0.3-33um_500-3000K_continuum.dat*'
+The output ascii file '*HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01_continuum.dat*'
 contains the remaining opacity contribution of the weak lines (in cm-1
 amagat-1 units) as function of wavenumber and temperature.  This is a
 minor contribution compared to that of the LBL output file.
@@ -153,6 +153,6 @@ Please, be kind and acknowledge the effort of the authors by citing the article 
 
 ### License
 
-Copyright (c) 2017-2019 Patricio Cubillos and contributors.
+Copyright (c) 2017-2020 Patricio Cubillos.
 ``repack`` is open-source software under the MIT license (see [LICENSE](https://github.com/pcubillos/repack/blob/master/LICENSE)).
 

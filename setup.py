@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2020 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 import os
@@ -12,7 +12,7 @@ topdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(topdir + "/repack")
 import VERSION as v
 
-version = '{:d}.{:d}.{:d}'.format(v.repack_VER, v.repack_MIN, v.repack_REV)
+version = f'{v.repack_VER}.{v.repack_MIN}.{v.repack_REV}'
 
 srcdir = './repack/utils/'  # C-code source folder
 
@@ -29,7 +29,7 @@ ela = []
 extensions = []
 for cfile in files:
     e = Extension('repack.utils.'+cfile.rstrip('.c'),
-                  sources=["{:s}{:s}".format(srcdir, cfile)],
+                  sources=[f"{srcdir}{cfile}"],
                   include_dirs=inc,
                   extra_compile_args=eca,
                   extra_link_args=ela)

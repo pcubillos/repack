@@ -2,7 +2,6 @@ language: python
 
 matrix:
   include:
-  - python: 2.7
   - python: 3.6
   - python: 3.7
     sudo: required
@@ -11,9 +10,10 @@ matrix:
 install:
   - pip install -r requirements.txt
   - pip install -e .
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
-  - wget --user=HITRAN --password=getdata -N https://www.cfa.harvard.edu/HITRAN/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
+  - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
+  - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
   - mv *.zip tests/
+
 
   - wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe__00100-00200.trans.bz2
   - wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe__00200-00300.trans.bz2
@@ -27,4 +27,4 @@ install:
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
   - mv *.pf tests/
 
-script: pytest tests
+script: pytest tests -v

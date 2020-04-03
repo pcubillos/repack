@@ -63,7 +63,7 @@ Reading: '02_04000-04500_HITEMP2010.zip'.
   Total compression rate: 18.73%,    112,367/   138,258 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 184,451 line transitions out of 138,258 lines.
+kept a total of 184,451 line transitions out of 352,027 lines.
 
 Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.2-2.6um_500-700K_lbl.dat' and

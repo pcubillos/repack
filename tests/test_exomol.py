@@ -1,8 +1,19 @@
 import os
 import subprocess
+import pytest
 
 ROOT = os.path.realpath(os.path.dirname(__file__) + '/..') + '/'
 os.chdir(ROOT+'tests')
+
+
+@pytest.mark.parametrize('missfile',
+    ['exomol_repack_missing1.cfg',
+     'exomol_repack_missing2.cfg'])
+def test_missing(capfd, missfile):
+    subprocess.call(['repack', missfile])
+    capfd = capfd.readouterr()
+    assert """File(s) not Found Error: These files are missing:
+  14N-1H3__MiSSinG__00200-00300.trans.bz2""" in capfd.out
 
 
 def test_exomol_single(capfd):
@@ -44,7 +55,7 @@ Reading: '14N-1H3__BYTe__00200-00300.trans.bz2'.
   Total compression rate: 80.62%,    206,002/ 1,062,896 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 510,910 line transitions out of 1,062,896 lines.
+kept a total of 510,910 line transitions out of 2,100,441 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_033-100um_500-700K_lbl.dat' and
@@ -96,7 +107,7 @@ Reading: '15N-1H3__BYTe-15__00200-00300.trans.bz2'.
   Total compression rate: 82.50%,    216,004/ 1,234,214 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 540,267 line transitions out of 1,234,214 lines.
+kept a total of 540,267 line transitions out of 2,447,092 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_033-100um_500-700K_lbl.dat' and
