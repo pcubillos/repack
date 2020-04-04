@@ -84,7 +84,7 @@ def test_get_exomol_mol(db, molecule, isotope):
 
 def test_read_lbl():
     wn, elow, gf, iiso = u.read_lbl('CO2_hitran_2.2-2.6um_500-700K_lbl.dat')
-    nlines = 184451
+    nlines = 184587
     assert len(wn)   == nlines
     assert len(elow) == nlines
     assert len(gf)   == nlines
@@ -93,8 +93,8 @@ def test_read_lbl():
     assert wn[-1] == 4499.9982
     assert elow[ 0] == 6971.2258
     assert elow[-1] == 6302.3546
-    np.testing.assert_approx_equal(gf[ 0], 6.27118677e-06)
-    np.testing.assert_approx_equal(gf[-1], 5.64550190e-09)
+    np.testing.assert_approx_equal(gf[ 0], 6.3684144650126015e-06)
+    np.testing.assert_approx_equal(gf[-1], 5.772367101902187e-09)
     np.testing.assert_equal(np.unique(iiso),
         np.array([626, 627, 628, 636, 638, 828]))
 

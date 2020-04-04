@@ -22,13 +22,13 @@ def test_exomol_single(capfd):
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
   Flagging lines at  500 K:
-  Compression rate:       73.90%,    270,761/ 1,037,545 lines.
+  Compression rate:       74.01%,    269,648/ 1,037,545 lines.
   Flagging lines at  700 K:
-  Compression rate:       72.20%,    288,406/ 1,037,545 lines.
-  Total compression rate: 70.61%,    304,908/ 1,037,545 lines.
+  Compression rate:       72.35%,    286,925/ 1,037,545 lines.
+  Total compression rate: 70.75%,    303,456/ 1,037,545 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 304,908 line transitions out of 1,037,545 lines.
+kept a total of 303,456 line transitions out of 1,037,545 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
@@ -42,20 +42,20 @@ def test_exomol_two_files(capfd):
 Unzipping: '14N-1H3__BYTe__00200-00300.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
   Flagging lines at  500 K:
-  Compression rate:       73.90%,    270,761/ 1,037,545 lines.
+  Compression rate:       74.01%,    269,648/ 1,037,545 lines.
   Flagging lines at  700 K:
-  Compression rate:       72.20%,    288,406/ 1,037,545 lines.
-  Total compression rate: 70.61%,    304,908/ 1,037,545 lines.
+  Compression rate:       72.35%,    286,925/ 1,037,545 lines.
+  Total compression rate: 70.75%,    303,456/ 1,037,545 lines.
 
 Reading: '14N-1H3__BYTe__00200-00300.trans.bz2'.
   Flagging lines at  500 K:
-  Compression rate:       83.14%,    179,161/ 1,062,896 lines.
+  Compression rate:       83.19%,    178,663/ 1,062,896 lines.
   Flagging lines at  700 K:
-  Compression rate:       81.82%,    193,215/ 1,062,896 lines.
-  Total compression rate: 80.62%,    206,002/ 1,062,896 lines.
+  Compression rate:       81.90%,    192,354/ 1,062,896 lines.
+  Total compression rate: 80.69%,    205,243/ 1,062,896 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 510,910 line transitions out of 2,100,441 lines.
+kept a total of 508,699 line transitions out of 2,100,441 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_033-100um_500-700K_lbl.dat' and
@@ -70,13 +70,13 @@ Unzipping: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
   Flagging lines at  500 K:
-  Compression rate:       76.63%,    283,467/ 1,212,878 lines.
+  Compression rate:       76.73%,    282,278/ 1,212,878 lines.
   Flagging lines at  700 K:
-  Compression rate:       75.06%,    302,443/ 1,212,878 lines.
-  Total compression rate: 73.26%,    324,263/ 1,212,878 lines.
+  Compression rate:       75.20%,    300,854/ 1,212,878 lines.
+  Total compression rate: 73.40%,    322,684/ 1,212,878 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 324,263 line transitions out of 1,212,878 lines.
+kept a total of 322,684 line transitions out of 1,212,878 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
@@ -93,21 +93,21 @@ Unzipping: '15N-1H3__BYTe-15__00200-00300.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '15N-1H3__BYTe-15__00100-00200.trans.bz2'.
   Flagging lines at  500 K:
-  Compression rate:       76.63%,    283,467/ 1,212,878 lines.
+  Compression rate:       76.73%,    282,278/ 1,212,878 lines.
   Flagging lines at  700 K:
-  Compression rate:       75.06%,    302,443/ 1,212,878 lines.
-  Total compression rate: 73.26%,    324,263/ 1,212,878 lines.
+  Compression rate:       75.20%,    300,854/ 1,212,878 lines.
+  Total compression rate: 73.40%,    322,684/ 1,212,878 lines.
 
 Reading: '14N-1H3__BYTe__00200-00300.trans.bz2'.
 Reading: '15N-1H3__BYTe-15__00200-00300.trans.bz2'.
   Flagging lines at  500 K:
-  Compression rate:       85.02%,    184,887/ 1,234,214 lines.
+  Compression rate:       85.06%,    184,349/ 1,234,214 lines.
   Flagging lines at  700 K:
-  Compression rate:       83.77%,    200,355/ 1,234,214 lines.
-  Total compression rate: 82.50%,    216,004/ 1,234,214 lines.
+  Compression rate:       83.84%,    199,462/ 1,234,214 lines.
+  Total compression rate: 82.57%,    215,138/ 1,234,214 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 540,267 line transitions out of 2,447,092 lines.
+kept a total of 537,822 line transitions out of 2,447,092 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_033-100um_500-700K_lbl.dat' and
@@ -122,13 +122,13 @@ def test_exomol_single_unzip(capfd):
     capfd = capfd.readouterr()
     assert """Reading: '14N-1H3__BYTe__00100-00200.trans'.
   Flagging lines at  500 K:
-  Compression rate:       73.90%,    270,761/ 1,037,545 lines.
+  Compression rate:       74.01%,    269,648/ 1,037,545 lines.
   Flagging lines at  700 K:
-  Compression rate:       72.20%,    288,406/ 1,037,545 lines.
-  Total compression rate: 70.61%,    304,908/ 1,037,545 lines.
+  Compression rate:       72.35%,    286,925/ 1,037,545 lines.
+  Total compression rate: 70.75%,    303,456/ 1,037,545 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 304,908 line transitions out of 1,037,545 lines.
+kept a total of 303,456 line transitions out of 1,037,545 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
@@ -143,19 +143,19 @@ def test_exomol_single_chunks(capfd):
     assert """Unzipping: '14N-1H3__BYTe__00100-00200.trans.bz2'.
 Reading: '14N-1H3__BYTe__00100-00200.trans.bz2'.
   Flagging lines at  500 K (chunk 1/2):
-  Compression rate:       70.42%,    153,438/   518,772 lines.
+  Compression rate:       70.54%,    152,852/   518,772 lines.
   Flagging lines at  700 K:
-  Compression rate:       68.69%,    162,411/   518,772 lines.
-  Total compression rate: 66.97%,    171,335/   518,772 lines.
+  Compression rate:       68.85%,    161,620/   518,772 lines.
+  Total compression rate: 67.12%,    170,554/   518,772 lines.
 
   Flagging lines at  500 K (chunk 2/2):
-  Compression rate:       77.38%,    117,324/   518,773 lines.
+  Compression rate:       77.49%,    116,797/   518,773 lines.
   Flagging lines at  700 K:
-  Compression rate:       75.71%,    125,996/   518,773 lines.
-  Total compression rate: 74.25%,    133,574/   518,773 lines.
+  Compression rate:       75.85%,    125,306/   518,773 lines.
+  Total compression rate: 74.38%,    132,903/   518,773 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 304,909 line transitions out of 1,037,545 lines.
+kept a total of 303,457 line transitions out of 1,037,545 lines.
 
 Successfully rewriten exomol line-transition info into:
   'NH3_exomol_050-100um_500-700K_lbl.dat' and
