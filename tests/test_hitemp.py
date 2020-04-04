@@ -50,7 +50,6 @@ def test_hitemp_two_files(capfd):
     capfd = capfd.readouterr()
     assert """Reading: '02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
-  Compression rate:       76.13%,     51,032/   213,769 lines.
   Compression rate:       76.11%,     51,071/   213,769 lines.
   Flagging lines at  700 K:
   Compression rate:       67.97%,     68,468/   213,769 lines.

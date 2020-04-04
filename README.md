@@ -91,7 +91,7 @@ repack repack_HCN.cfg
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
   repack: line-transition data compression.
-  Version 1.4.0.
+  Version 1.4.1.
   Copyright (c) 2017-2020 Patricio Cubillos.
   repack is open-source software under the MIT license.
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -103,21 +103,21 @@ Unzipping: '1H-13C-14N__Larner.trans.bz2'.
 Reading: '1H-12C-14N__Harris.trans.bz2'.
 Reading: '1H-13C-14N__Larner.trans.bz2'.
   Flagging lines at  100 K (chunk 1/14):
-  Compression rate:       96.82%,    148,123/ 4,662,663 lines.
+  Compression rate:       96.82%,    148,115/ 4,662,663 lines.
   Flagging lines at 3000 K:
-  Compression rate:       86.94%,    608,876/ 4,662,663 lines.
-  Total compression rate: 84.65%,    715,656/ 4,662,663 lines.
+  Compression rate:       86.89%,    611,256/ 4,662,663 lines.
+  Total compression rate: 84.60%,    717,921/ 4,662,663 lines.
 
 ...
 
   Flagging lines at  100 K (chunk 14/14):
-  Compression rate:       95.47%,    209,195/ 4,619,175 lines.
+  Compression rate:       95.47%,    209,217/ 4,619,175 lines.
   Flagging lines at 3000 K:
-  Compression rate:       75.15%,  1,147,751/ 4,619,175 lines.
-  Total compression rate: 73.24%,  1,236,054/ 4,619,175 lines.
+  Compression rate:       75.13%,  1,148,804/ 4,619,175 lines.
+  Total compression rate: 73.22%,  1,237,122/ 4,619,175 lines.
 
 With a threshold strength factor of 0.01,
-kept a total of 7,549,234 line transitions out of 65,586,274 lines.
+kept a total of 7,553,671 line transitions out of 65,586,274 lines.
 
 Successfully rewriten exomol line-transition info into:
   'HCN_exomol_harris-larner_0.3-33um_100-3000K_sthresh_0.01_lbl.dat' and
