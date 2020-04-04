@@ -123,7 +123,7 @@ def worker(input, output):
         flag2 = np.ones(len(iiso), bool)
         u.flag(flag2, wn, s/alphad, isort, alphad, sthresh)
 
-        output.put((flag,flag2, wn, gf, Elow, iiso, idx))
+        output.put((flag, flag2, wn, gf, Elow, iiso, idx))
 
 
 def repack(cfile):
