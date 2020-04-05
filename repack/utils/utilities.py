@@ -384,15 +384,15 @@ class lbl():
             wn    = np.zeros(nlines, np.double)
             A21   = np.zeros(nlines, np.double)
             Elow  = np.zeros(nlines, np.double)
-            g1    = np.zeros(nlines, np.double)
+            g2    = np.zeros(nlines, np.double)
             for i in range(nlines):
                 line = self.file.readline()
                 isoID[i] = line[  2:  3]
                 wn   [i] = line[  3: 15]
                 A21  [i] = line[ 25: 35]
                 Elow [i] = line[ 45: 55]
-                g1   [i] = line[146:153]
-            gf = g1 * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
+                g2   [i] = line[146:153]
+            gf = g2 * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
             isoID = (isoID - 1) % 10
 
         elif self.dbtype == "kurucz":
