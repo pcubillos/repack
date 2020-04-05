@@ -2,6 +2,7 @@
 # repack is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
+    "fopen",
     "parse_file",
     "read_pf",
     "read_states",
@@ -77,7 +78,7 @@ def parse_file(lblfile, dbtype):
     root, file = os.path.split(os.path.realpath(lblfile))
     if dbtype == "exomol":
         # Auxilliary files:
-        sfile = file.replace("trans", "states")
+        sfile = file.replace("trans", "states").replace('.sort', '')
         if sfile.count("__") == 2:
             suffix = sfile[sfile.rindex("__"):sfile.index(".")]
             sfile = sfile.replace(suffix, "")
@@ -249,8 +250,8 @@ class lbl():
         iso: Integer
             The isotope index for this file (for Exomol data).
         """
-        self.lblfile = lblfile                    # The file name
-        self.dbtype  = dbtype                     # Database type
+        self.lblfile = lblfile
+        self.dbtype = dbtype
 
         if dbtype == "kurucz":
             self.file = fopen(lblfile, "rb")
@@ -258,14 +259,15 @@ class lbl():
             self.ratiolog = np.log(1.0 + 1.0/2000000)
             self.tablog = 10.0**(0.001*(np.arange(32769) - 16384))
         else:
-            self.file  = fopen(lblfile, "r")  # The actual file
+            self.file = fopen(lblfile, "r")
             dummy = self.file.readline()
-            self.llen = self.file.tell()      # Length of lines in file
+            self.llen = self.file.tell()
         self.file.seek(0,2)
-        self.nlines = self.file.tell() // self.llen  # Number of lines
+        self.nlines = self.file.tell() // self.llen
         self.elow   = elow
         self.g      = g
         self.iso    = iso  # Isotope index
+
 
     def bs(self, val, lo, hi):
         """
@@ -365,10 +367,10 @@ class lbl():
             ilo = np.zeros(nlines, int)
             A21 = np.zeros(nlines, np.double)
             for i in range(nlines):
-                  line = self.file.readline()
-                  iup[i] = line[ 0:12]
-                  ilo[i] = line[13:25]
-                  A21[i] = line[26:36]
+                line = self.file.readline()
+                iup[i] = line[ 0:12]
+                ilo[i] = line[13:25]
+                A21[i] = line[26:36]
             iup -= 1
             ilo -= 1
             # Compute values:
