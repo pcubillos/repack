@@ -4,6 +4,7 @@
 __all__ = [
     'parser',
     'repack',
+    'sort',
     ]
 
 import sys
@@ -17,7 +18,7 @@ import numpy as np
 import scipy.interpolate as sip
 import scipy.constants as sc
 
-from . import utils     as u
+from . import utils as u
 from . import constants as c
 
 
@@ -100,7 +101,8 @@ def parser(cfile):
 
 def worker(input, output):
     """
-    Doc me!
+    Multiprocessing worker that extracts the line-transition info
+    and flags the strong/weak lines between the requested indices.
     """
     for args in iter(input.get, 'STOP'):
         wn, gf, Elow, iiso, tmin, tmax, zmin, zmax, imass, \
@@ -169,7 +171,7 @@ def repack(cfile):
 
     # Parse input files:
     nfiles = len(files)
-    suff, mol, isot, pf, states = [], [],  [], [], []
+    suff, mol, isot, pf, states = [], [], [], [], []
     for dfile in files:
         s, m, iso, p, st = u.parse_file(dfile, dbtype)
         suff.append(s)
@@ -449,3 +451,162 @@ def repack(cfile):
     # Delete unzipped set:
     for f in sdelete:
         os.remove(f)
+
+
+def sort_worker(input, output):
+    """
+    Multiprocessing worker that reads the line transition wavenumbers
+    between the requested indices.
+    """
+    for args in iter(input.get, 'STOP'):
+        lblfile, rec_size, elow, istart, iend, idx = args
+        with u.fopen(lblfile, "r") as file:
+            nlines = iend - istart
+            file.seek(istart*rec_size)
+            iup = np.zeros(nlines, int)
+            ilo = np.zeros(nlines, int)
+            for i in range(nlines):
+                line = file.readline()
+                iup[i] = line[ 0:12]
+                ilo[i] = line[13:25]
+        wn = elow[iup-1] - elow[ilo-1]
+        output.put((wn, idx))
+
+
+def sort(cfile):
+    """
+    Sort the ExoMol .trans files by wavenumber for MARVELized .states files
+
+    Parameters
+    ----------
+    cfile: String
+        A repack configuration file.
+    """
+    banner = 70 * ":"
+    args = parser(cfile)
+    files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
+        sthresh, pffile, chunksize, ncpu = args
+
+    if dbtype != "exomol":
+        sys.exit(0)
+
+    missing = [file for file in files if not os.path.exists(file)]
+    if len(missing) > 0:
+        miss_list = '\n  '.join(missing)
+        print(f"\n{banner}\n"
+               "  File(s) not Found Error: These files are missing:\n"
+              f"  {miss_list}"
+              f"\n{banner}\n")
+        sys.exit(0)
+
+    # Parse input files:
+    nfiles = len(files)
+    suff, mol, isot, pf, states = [], [],  [], [], []
+    for dfile in files:
+        s, m, iso, p, st = u.parse_file(dfile, dbtype)
+        suff.append(s)
+        mol.append(m)
+        isot.append(iso)
+        pf.append(p)
+        if st is not None:
+            states.append(st)
+
+    # Uncompress states:
+    allstates = np.unique(states)
+    sdelete, sproc = [], []
+    for state in allstates:
+        if state.endswith(".bz2"):
+            proc = subprocess.Popen(["bzip2", "-dk", state])
+            sproc.append(proc)
+            sdelete.append(os.path.realpath(state).replace(".bz2", ""))
+
+    isotopes = list(np.unique(isot))
+    niso = len(isotopes)
+
+    zbuffer = np.amin([2, nfiles])
+    tdelete, tproc = [], []
+    for idx in range(zbuffer):
+        if files[idx].endswith(".bz2"):
+            print(f"Unzipping: '{files[idx]}'.")
+            proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
+            tproc.append(proc)
+            tdelete.append(files[idx].replace(".bz2", ""))
+
+    for proc in sproc:
+        proc.communicate()
+
+    iso = np.zeros(nfiles, int)
+    for i in range(nfiles):
+        iso[i] = isotopes.index(isot[i])
+
+    lblargs = []
+    for j in range(niso):
+        i = isot.index(isotopes[j])
+        elow, degen = u.read_states(states[i])
+        lblargs.append([elow, degen, j])
+
+    # Turn isotopes from string to integer data type:
+    isotopes = np.asarray(isotopes, int)
+
+    # Create queues and start worker processes:
+    task_queue = mp.Queue()
+    done_queue = mp.Queue()
+    for i in range(ncpu):
+        mp.Process(target=sort_worker, args=(task_queue, done_queue)).start()
+
+    zproc = []
+    for i in range(nfiles):
+        # Make sure current files are uncompressed:
+        tproc[i].communicate()
+        # Uncompress following set:
+        if zbuffer < nfiles and files[zbuffer].endswith(".bz2"):
+            print(f"Unzipping: '{files[zbuffer]}'.")
+            proc = subprocess.Popen(["bzip2", "-dk", files[zbuffer]])
+            tproc.append(proc)
+            tdelete.append(files[zbuffer].replace(".bz2", ""))
+            zbuffer += 1
+
+        # Initialize lbl object (not reading yet):
+        j = iso[i]
+        print(f"Reading: '{files[i]}'.")
+        lbl = u.lbl(files[i], dbtype, *lblargs[j])
+
+        nlines = lbl.nlines
+        chunksize = int(nlines/ncpu) + 1
+        chunks = np.linspace(0, nlines, ncpu+1, dtype=int)
+
+        for k in range(ncpu):
+            args = lbl.lblfile, lbl.llen, lbl.elow, chunks[k], chunks[k+1], k
+            task_queue.put(args)
+
+        wn = [None] * ncpu
+        for k in range(ncpu):
+            w, idx = done_queue.get()
+            wn[idx] = w
+        all_wn = np.concatenate(wn)
+        wn_sort = np.argsort(np.argsort(all_wn))
+
+        lines = np.zeros(nlines, f'U{lbl.llen}')
+        lbl.file.seek(0)
+        for k in range(nlines):
+            lines[wn_sort[k]] = lbl.file.readline()
+        sort_file = lbl.lblfile.replace('trans.bz2', 'trans.sort')
+        with open(sort_file, 'w') as f:
+            f.writelines(lines)
+
+        proc = subprocess.Popen(["bzip2", "-z", sort_file])
+        zproc.append(proc)
+
+        lbl.close()
+        os.remove(tdelete[i])
+
+    for k in range(ncpu):
+        task_queue.put('STOP')
+
+    # Delete unzipped set:
+    for state in sdelete:
+        os.remove(state)
+
+    for proc in zproc:
+        proc.communicate()
+
