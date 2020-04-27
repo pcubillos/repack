@@ -8,13 +8,23 @@ import warnings
 import time
 from datetime import date
 
-import repack as rep
+import repack
 
 
 banner = ':'*70
+error_message = """\
+  Error: Wrong usage.  For repacking:
+      repack config_file.cfg
+  For sorting (of MARVELized data):
+      repack -sort config_file.cfg"""
 
 def main():
     warnings.simplefilter("ignore", RuntimeWarning)
+    if len(sys.argv) == 3:
+        if sys.argv[1] != '-sort':
+            print(f"\n{banner}\n{error_message}.\n{banner}\n")
+            sys.exit(0)
+
     if len(sys.argv) != 2:
         print(f"\n{banner}\n  Error: Wrong usage.\n{banner}\n")
         sys.exit(0)
@@ -27,8 +37,10 @@ def main():
           f"{banner}\n\n")
 
     print(f"Start: {time.ctime()}")
-    cfile = sys.argv[1]
-    rep.repack(cfile)
+    if len(sys.argv) == 3:
+        repack.sort(sys.argv[2])
+    else:
+        repack.repack(sys.argv[1])
     print(f"End: {time.ctime()}")
 
 if __name__ == "__main__":
