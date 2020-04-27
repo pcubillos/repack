@@ -210,6 +210,9 @@ def repack(cfile):
 
     # Isotopic abundance ratio and mass:
     iratio, imass = u.read_iso(mol, isotopes, dbtype)
+    if np.any(iratio==0)  or np.any(imass==0):
+        raise ValueError('One or more isotopes have missing isotopic ratio '
+                         'or mass information in isotopes.dat file.')
 
     s = suff[:]  # Make a copy
     # File indices for each wavenumber set:
