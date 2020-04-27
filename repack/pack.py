@@ -144,6 +144,11 @@ def repack(cfile):
     files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
         sthresh, pffile, chunksize, ncpu = args
 
+    # Auto-detect sorted files:
+    files = [f.replace('.trans','.trans.sort')
+             if os.path.exists(f.replace('.trans','.trans.sort')) else f
+             for f in files]
+
     missing = [file for file in files if not os.path.exists(file)]
     if len(missing) > 0:
         miss_list = '\n  '.join(missing)
