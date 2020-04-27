@@ -144,6 +144,19 @@ amagat-1 units) as function of wavenumber and temperature.  This is a
 minor contribution compared to that of the LBL output file.
 
 
+### Re-sorting MARVELized files
+
+Since some ExoMol .states files have been MARVELized (refined energy levels), the .trans files are no longer sorted by wavenumber.  This is a problem for ``repack`` since its binaary searches rely on a sorted wavenumber files.  To solve this, the user should sort the files before repacking:
+
+```shell
+# First sort the .trans files (use same config file as a repack file):
+repack -sort repack_H2O.cfg
+
+# Now run repack as usual:
+repack repack_H2O.cfg
+```
+
+
 ### Be Kind
 
 Please, be kind and acknowledge the effort of the authors by citing the article asociated to this project:  

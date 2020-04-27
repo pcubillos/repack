@@ -12,7 +12,7 @@ install:
   - pip install -e .
   - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_03750-04000_HITEMP2010.zip
   - wget https://hitran.org/hitemp/data/HITEMP-2010/CO2_line_list/02_04000-04500_HITEMP2010.zip
-  - mv *.zip tests/
+  - mv *.zip tests/data/
 
 
   - wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe__00100-00200.trans.bz2
@@ -21,10 +21,13 @@ install:
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15__00100-00200.trans.bz2
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15__00200-00300.trans.bz2
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.states.bz2
-  - mv *.bz2 tests/
+  - wget http://www.exomol.com/db//H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL.states.bz2
+  - wget http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__34800-34900.trans.bz2
+  - mv *.bz2 tests/data/
 
   - wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.pf
-  - mv *.pf tests/
+  - wget http://www.exomol.com/db//H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL.pf
+  - mv *.pf tests/data/
 
 script: pytest tests -v

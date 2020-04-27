@@ -4,4 +4,4 @@
 # repack version:
 repack_VER =  1  # Major version
 repack_MIN =  4  # Minor version
-repack_REV =  1  # Revision
+repack_REV =  2  # Revision

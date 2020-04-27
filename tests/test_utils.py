@@ -52,7 +52,7 @@ def test_parse_file_kurucz():
 
 
 def test_read_pf_exomol():
-    temp, pf = u.read_pf('14N-1H3__BYTe.pf', 'exomol')
+    temp, pf = u.read_pf('data/14N-1H3__BYTe.pf', 'exomol')
     np.testing.assert_equal(temp, np.linspace(1.0, 1600.0, 1600))
     assert np.shape(pf) == (1600,)
     assert pf[ 0] ==     3.8341
@@ -60,7 +60,7 @@ def test_read_pf_exomol():
 
 
 def test_read_pf_pyrat():
-    temp, pf, iso = u.read_pf('PF_tips_CO2.dat', 'pyrat')
+    temp, pf, iso = u.read_pf('data/PF_tips_CO2.dat', 'pyrat')
     np.testing.assert_equal(temp, np.linspace(70.0, 3000.0, 294))
     assert np.shape(pf) == (11,294)
     assert pf[ 0, 0] == 62.559
