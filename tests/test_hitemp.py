@@ -6,9 +6,9 @@ os.chdir(ROOT+'tests')
 
 
 def test_hitemp_single_zip(capfd):
-    subprocess.call(['repack', 'hitemp_repack_single_zip.cfg'])
+    subprocess.call('repack hitemp_repack_single_zip.cfg'.split())
     capfd = capfd.readouterr()
-    assert """Reading: '02_03750-04000_HITEMP2010.zip'.
+    assert """Reading: 'data/02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
   Compression rate:       76.11%,     51,071/   213,769 lines.
   Flagging lines at  700 K:
@@ -25,10 +25,10 @@ Successfully rewriten hitran line-transition info into:
 
 def test_hitemp_single_unzip(capfd):
     # Unzip files before repacking:
-    subprocess.call(['unzip', '02_03750-04000_HITEMP2010.zip'])
-    subprocess.call(['repack', 'hitemp_repack_single_unzip.cfg'])
+    subprocess.call('unzip data/02_03750-04000_HITEMP2010.zip -d data/'.split())
+    subprocess.call('repack hitemp_repack_single_unzip.cfg'.split())
     capfd = capfd.readouterr()
-    assert """Reading: '02_3750-4000_HITEMP2010.par'.
+    assert """Reading: 'data/02_3750-4000_HITEMP2010.par'.
   Flagging lines at  500 K:
   Compression rate:       76.11%,     51,071/   213,769 lines.
   Flagging lines at  700 K:
@@ -42,20 +42,20 @@ Successfully rewriten hitran line-transition info into:
   'CO2_hitran_2.5-2.6um_500-700K_lbl.dat' and
   'CO2_hitran_2.5-2.6um_500-700K_continuum.dat'.""" in capfd.out
     # Teardown:
-    os.remove('02_3750-4000_HITEMP2010.par')
+    os.remove('data/02_3750-4000_HITEMP2010.par')
 
 
 def test_hitemp_two_files(capfd):
     subprocess.call(['repack', 'hitemp_repack_two.cfg'])
     capfd = capfd.readouterr()
-    assert """Reading: '02_03750-04000_HITEMP2010.zip'.
+    assert """Reading: 'data/02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K:
   Compression rate:       76.11%,     51,071/   213,769 lines.
   Flagging lines at  700 K:
   Compression rate:       67.97%,     68,468/   213,769 lines.
   Total compression rate: 66.26%,     72,118/   213,769 lines.
 
-Reading: '02_04000-04500_HITEMP2010.zip'.
+Reading: 'data/02_04000-04500_HITEMP2010.zip'.
   Flagging lines at  500 K:
   Compression rate:       46.12%,     74,492/   138,258 lines.
   Flagging lines at  700 K:
@@ -71,9 +71,9 @@ Successfully rewriten hitran line-transition info into:
 
 
 def test_hitemp_single_chunks(capfd):
-    subprocess.call(['repack', 'hitemp_repack_single_chunks.cfg'])
+    subprocess.call('repack hitemp_repack_single_chunks.cfg'.split())
     capfd = capfd.readouterr()
-    assert """Reading: '02_03750-04000_HITEMP2010.zip'.
+    assert """Reading: 'data/02_03750-04000_HITEMP2010.zip'.
   Flagging lines at  500 K (chunk 1/3):
   Compression rate:       83.40%,     11,826/    71,256 lines.
   Flagging lines at  700 K:
