@@ -25,7 +25,7 @@ def main():
             print(f"\n{banner}\n{error_message}.\n{banner}\n")
             sys.exit(0)
 
-    if len(sys.argv) != 2:
+    elif len(sys.argv) != 2:
         print(f"\n{banner}\n  Error: Wrong usage.\n{banner}\n")
         sys.exit(0)
 
