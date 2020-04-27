@@ -22,7 +22,7 @@ install:
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15__00200-00300.trans.bz2
   - wget http://www.exomol.com/db/NH3/15N-1H3/BYTe-15/15N-1H3__BYTe-15.states.bz2
   - wget http://www.exomol.com/db//H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL.states.bz2
-  - wget http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__38300-38400.trans.bz2
+  - wget http://www.exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__34800-34900.trans.bz2
   - mv *.bz2 tests/data/
 
   - wget http://www.exomol.com/db/NH3/14N-1H3/BYTe/14N-1H3__BYTe.pf
