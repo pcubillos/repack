@@ -31,10 +31,13 @@ def main():
 
     print(f"\n{banner}\n"
            "  repack: line-transition data compression.\n"
-          f"  Version {rep.__version__}.\n"
+          f"  Version {repack.__version__}.\n"
           f"  Copyright (c) 2017-{date.today().year} Patricio Cubillos.\n"
            "  repack is open-source software under the MIT license.\n"
           f"{banner}\n\n")
+
+    if len(sys.argv) == 2 and sys.argv[1] == '-v':
+        return
 
     print(f"Start: {time.ctime()}")
     if len(sys.argv) == 3:
