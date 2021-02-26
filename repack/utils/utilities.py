@@ -78,19 +78,20 @@ def parse_file(lblfile, dbtype):
     root, file = os.path.split(os.path.realpath(lblfile))
     if dbtype == "exomol":
         # Auxilliary files:
-        sfile = file.replace("trans", "states").replace('.sort', '')
+        sfile = file.replace(".trans", ".states").replace('.sort', '')
         if sfile.count("__") == 2:
             suffix = sfile[sfile.rindex("__"):sfile.index(".")]
             sfile = sfile.replace(suffix, "")
         else:
             suffix = ""
-        sfile  = root + "/" + sfile
-        pffile = sfile.replace("states", "pf").strip(".bz2")
+        sfile  = root + os.sep + sfile
+        pffile = sfile.replace(".states", ".pf").strip(".bz2")
         # Get info from file name:
         molecule, isotope = get_exomol_mol(file)
 
     elif dbtype == "hitran":
-        hitempID = {"01":"H2O", "02":"CO2", "05":"CO", "08":"NO"}
+        hitempID = {"01":"H2O", "02":"CO2", "04":"N2O", "05":"CO", "06":"CH4", 
+                    "08":"NO",  "10":"NO2", "13":"OH"}
         molID = file[0:2]
         molecule = hitempID[molID]
         suffix = file[file.find("_")+1:file.rfind(".par")]
