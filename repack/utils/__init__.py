@@ -1,8 +1,8 @@
-# Copyright (c) 2017-2020 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2021 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 from .utilities import *
-from .cutils    import *
+from .cutils import *
 
 __all__ = (
     utilities.__all__

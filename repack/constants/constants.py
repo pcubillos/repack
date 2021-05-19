@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2020 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2021 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
@@ -29,7 +29,7 @@ e  = 4.803205e-10
 me = sc.m_e * 1e3
 # Amagat in molecules cm-3:
 N0 = sc.physical_constants[
-        "Loschmidt constant (273.15 K, 101.325 kPa)"][0] * 1e-6
+    "Loschmidt constant (273.15 K, 101.325 kPa)"][0] * 1e-6
 
 # One nanometer in centimeters:
 nano = 1e-7

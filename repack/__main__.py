@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# Copyright (c) 2017-2020 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2021 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 import sys
@@ -45,6 +45,7 @@ def main():
     else:
         repack.repack(sys.argv[1])
     print(f"End: {time.ctime()}")
+
 
 if __name__ == "__main__":
     main()
