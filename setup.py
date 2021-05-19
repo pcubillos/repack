@@ -9,9 +9,8 @@ from setuptools import setup, Extension
 from numpy import get_include
 
 sys.path.append(os.path.join(os.path.dirname(__file__), 'repack'))
-import VERSION as v
+from VERSION import __version__
 
-version = f'{v.repack_VER}.{v.repack_MIN}.{v.repack_REV}'
 
 srcdir = './repack/utils/'  # C-code source folder
 
@@ -40,7 +39,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name = 'lbl-repack',
-    version = version,
+    version = __version__,
     author = 'Patricio Cubillos',
     author_email = 'patricio.cubillos@oeaw.ac.at',
     url = 'https://github.com/pcubillos/repack',
