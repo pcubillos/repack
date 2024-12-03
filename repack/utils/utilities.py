@@ -12,10 +12,11 @@ __all__ = [
     "read_iso",
     "get_exomol_mol",
     "read_lbl",
-    ]
+]
 
 import os
 import re
+import bz2
 import zipfile
 import struct
 import itertools
@@ -90,8 +91,16 @@ def parse_file(lblfile, dbtype):
         molecule, isotope = get_exomol_mol(file)
 
     elif dbtype == "hitran":
-        hitempID = {"01":"H2O", "02":"CO2", "04":"N2O", "05":"CO", "06":"CH4", 
-                    "08":"NO",  "10":"NO2", "13":"OH"}
+        hitempID = {
+            "01": "H2O",
+            "02": "CO2",
+            "04": "N2O",
+            "05": "CO",
+            "06": "CH4",
+            "08": "NO",
+            "10": "NO2",
+            "13": "OH",
+        }
         molID = file[0:2]
         molecule = hitempID[molID]
         suffix = file[file.find("_")+1:file.rfind(".par")]
@@ -223,13 +232,17 @@ def read_states(states):
        State total statistical degeneracy.
     """
     # Read states file:
-    with fopen(states) as f:
-        lines = f.readlines()
+    if states.endswith('bz2'):
+        with bz2.open(states, 'rt') as f:
+            lines = f.readlines()
+    else:
+        with open(states, 'r') as f:
+            lines = f.readlines()
     nstates = len(lines)
-    # Alocate outputs:
-    elow = np.zeros(nstates, np.double)  # State energy
-    g    = np.zeros(nstates, int)        # State degeneracy (incl. ns)
-    # Extract data:
+
+    # Extract energy and degeneracy:
+    elow = np.zeros(nstates, np.double)
+    g = np.zeros(nstates, int)
     for i in range(nstates):
         elow[i], g[i] = lines[i].split()[1:3]
     return elow, g
@@ -265,9 +278,9 @@ class lbl():
             self.llen = self.file.tell()
         self.file.seek(0,2)
         self.nlines = self.file.tell() // self.llen
-        self.elow   = elow
-        self.g      = g
-        self.iso    = iso  # Isotope index
+        self.elow = elow
+        self.g = g
+        self.iso = iso  # Isotope index
 
 
     def bs(self, val, lo, hi):
@@ -375,13 +388,13 @@ class lbl():
             iup -= 1
             ilo -= 1
             # Compute values:
-            wn   = self.elow[iup] - self.elow[ilo]
-            gf   = self.g[iup] * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
+            wn = self.elow[iup] - self.elow[ilo]
+            gf = self.g[iup] * A21 * c.C1 / (8.0*np.pi*100*sc.c) / wn**2.0
             Elow = self.elow[ilo]
             isoID = np.tile(self.iso, np.size(wn))
 
         elif self.dbtype == "hitran":
-            isoID = np.zeros(nlines,       int)
+            isoID = np.zeros(nlines, int)
             wn    = np.zeros(nlines, np.double)
             A21   = np.zeros(nlines, np.double)
             Elow  = np.zeros(nlines, np.double)
@@ -459,9 +472,9 @@ def wnbalance(lbls, wnmin, wnmax, targetsize, zero=0, tol=0.01):
         return wntarget
 
     elif ntarget-zero < targetsize:
-        return wnbalance(lbls, wntarget, wnmax,    targetsize, zero, tol)
+        return wnbalance(lbls, wntarget, wnmax, targetsize, zero, tol)
     else:
-        return wnbalance(lbls, wnmin,    wntarget, targetsize, zero, tol)
+        return wnbalance(lbls, wnmin, wntarget, targetsize, zero, tol)
 
 
 def count(lbls, wntarget):
