@@ -1,14 +1,15 @@
-# Copyright (c) 2017-2021 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2024 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
     'parser',
     'repack',
     'sort',
-    ]
+]
 
 import sys
 import os
+import bz2
 import struct
 import subprocess
 import configparser
@@ -145,9 +146,11 @@ def repack(cfile):
         sthresh, pffile, chunksize, ncpu = args
 
     # Auto-detect sorted files:
-    files = [f.replace('.trans','.trans.sort')
-             if os.path.exists(f.replace('.trans','.trans.sort')) else f
-             for f in files]
+    files = [
+        f.replace('.trans','.trans.sort')
+        if os.path.exists(f.replace('.trans','.trans.sort')) else f
+        for f in files
+    ]
 
     missing = [file for file in files if not os.path.exists(file)]
     if len(missing) > 0:
@@ -166,7 +169,7 @@ def repack(cfile):
         ntemp, nwave = 0, 0
 
     temperature = np.linspace(tmin, tmax, ntemp)
-    wnspec      = np.linspace(wnmin, wnmax, nwave)
+    wnspec = np.linspace(wnmin, wnmax, nwave)
     continuum = np.zeros((nwave, ntemp), np.double)
 
     if dbtype not in ["hitran", "exomol", "kurucz"]:
@@ -185,15 +188,6 @@ def repack(cfile):
         pf.append(p)
         if st is not None:
             states.append(st)
-
-    # Uncompress states:
-    allstates = np.unique(states)
-    sdelete, sproc = [], []
-    for state in allstates:
-        if state.endswith(".bz2"):
-            proc = subprocess.Popen(["bzip2", "-dk", state])
-            sproc.append(proc)
-            sdelete.append(os.path.realpath(state).replace(".bz2", ""))
 
     if len(np.unique(mol)) > 1:
         print(f"\n{banner}\n"
@@ -244,9 +238,6 @@ def repack(cfile):
                 proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
                 tproc[b].append(proc)
                 tdelete[b].append(files[idx].replace(".bz2", ""))
-
-    for proc in sproc:
-        proc.communicate()
 
     iso = np.zeros(nfiles, int)
     if dbtype == "exomol":
@@ -456,10 +447,6 @@ def repack(cfile):
     print(f"Successfully rewriten {dbtype} line-transition info into:\n"
           f"  '{lbl_out}'{cont_msg}.")
 
-    # Delete unzipped set:
-    for f in sdelete:
-        os.remove(f)
-
 
 def sort_worker(input, output):
     """
@@ -519,15 +506,6 @@ def sort(cfile):
         if st is not None:
             states.append(st)
 
-    # Uncompress states:
-    allstates = np.unique(states)
-    sdelete, sproc = [], []
-    for state in allstates:
-        if state.endswith(".bz2"):
-            proc = subprocess.Popen(["bzip2", "-dk", state])
-            sproc.append(proc)
-            sdelete.append(os.path.realpath(state).replace(".bz2", ""))
-
     isotopes = list(np.unique(isot))
     niso = len(isotopes)
 
@@ -539,9 +517,6 @@ def sort(cfile):
             proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
             tproc.append(proc)
             tdelete.append(files[idx].replace(".bz2", ""))
-
-    for proc in sproc:
-        proc.communicate()
 
     iso = np.zeros(nfiles, int)
     for i in range(nfiles):
@@ -562,7 +537,6 @@ def sort(cfile):
     for i in range(ncpu):
         mp.Process(target=sort_worker, args=(task_queue, done_queue)).start()
 
-    zproc = []
     for i in range(nfiles):
         # Make sure current files are uncompressed:
         tproc[i].communicate()
@@ -598,12 +572,8 @@ def sort(cfile):
         lbl.file.seek(0)
         for k in range(nlines):
             lines[wn_sort[k]] = lbl.file.readline()
-        sort_file = lbl.lblfile.replace('trans.bz2', 'trans.sort')
-        with open(sort_file, 'w') as f:
+        with bz2.open(lbl.lblfile, 'wt') as f:
             f.writelines(lines)
-
-        proc = subprocess.Popen(["bzip2", "-z", sort_file])
-        zproc.append(proc)
 
         lbl.close()
         os.remove(tdelete[i])
@@ -611,10 +581,11 @@ def sort(cfile):
     for k in range(ncpu):
         task_queue.put('STOP')
 
-    # Delete unzipped set:
-    for state in sdelete:
-        os.remove(state)
-
-    for proc in zproc:
-        proc.communicate()
+    path, file = os.path.split(files[0])
+    molecule = mol[0]
+    with open(f'{path}/README_REPACK', 'a') as f:
+        f.write(
+            f'files have been sorted for {molecule} isotopes:\n'
+            f'{isotopes}\n'
+        )
 
