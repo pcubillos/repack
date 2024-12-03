@@ -1,16 +1,16 @@
-# Copyright (c) 2017-2021 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2024 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
     'constants',
     'utils',
-    ]
+]
 
 from . import constants
 from . import utils
 from .pack import *
 
-from .VERSION import __version__
+from .version import __version__
 
 __all__ += pack.__all__
 
