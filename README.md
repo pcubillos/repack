@@ -1,8 +1,8 @@
 # repack
 Repack and Compress Line-transition Data for Radiative-tranfer Calculations
 
-[![Build Status](https://travis-ci.com/pcubillos/repack.svg?branch=master)](https://travis-ci.com/pcubillos/repack)
 [![PyPI](https://img.shields.io/pypi/v/lbl-repack.svg)](https://pypi.org/project/lbl-repack)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/lbl-repack.svg)](https://anaconda.org/conda-forge/lbl-repack)
 [![GitHub](https://img.shields.io/github/license/pcubillos/repack.svg?color=blue)](https://github.com/pcubillos/repack/blob/master/LICENSE)
 
 This code identifies the strong lines that dominate the spectrum from
