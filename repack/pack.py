@@ -182,6 +182,9 @@ def repack(cfile):
     suff, mol, isot, pf, states = [], [], [], [], []
     for dfile in files:
         s, m, iso, p, st = u.parse_file(dfile, dbtype)
+        # Special case for some CO2 isotopes:
+        if m == 'OCO':
+            m = 'CO2'
         suff.append(s)
         mol.append(m)
         isot.append(iso)
@@ -200,9 +203,12 @@ def repack(cfile):
     if pffile is not None:
         # Read input partition-function file (if given):
         pftemp, partf, isotopes = u.read_pf(pffile, dbtype="pyrat")
-        isotopes = list(isotopes)
-        for pfvalue in partf:
-            z.append(sip.interp1d(pftemp, pfvalue, kind='slinear'))
+        for i,iso in enumerate(isotopes):
+            if iso in isot:
+                z.append(sip.interp1d(pftemp, partf[i], kind='slinear'))
+        iso_mask = np.isin(isotopes, isot)
+        isotopes = isotopes[iso_mask].tolist()
+
     else:
         isotopes = list(np.unique(isot))
     niso = len(isotopes)
