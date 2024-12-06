@@ -588,8 +588,13 @@ def get_exomol_mol(dbfile):
         isotope  += match.group(1)[-1:] * N
 
     composition = [list(g[1]) for g in itertools.groupby(elements)]
-    molecule = "".join([c[0] + str(len(c))*(len(c)>1)
-                        for c in composition])
+    molecule = "".join([
+        c[0] + str(len(c))*(len(c)>1)
+        for c in composition
+    ])
+    # Edge case:
+    if molecule == 'OCO':
+        molecule = 'CO2'
 
     return molecule, isotope
 
