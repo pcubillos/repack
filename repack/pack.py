@@ -7,7 +7,6 @@ __all__ = [
     'sort',
 ]
 
-import sys
 import os
 import bz2
 import struct
@@ -139,7 +138,6 @@ def repack(cfile):
     cfile: String
         A repack configuration file.
     """
-    banner = 70 * ":"
     # Parse configuration file:
     args = parser(cfile)
     files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
@@ -156,7 +154,7 @@ def repack(cfile):
     if len(missing) > 0:
         miss_list = '\n  '.join(missing)
         raise ValueError(
-           "  These files are missing:\n  {miss_list}"
+           f"  These files are missing:\n  {miss_list}"
         )
 
     # Grid sampling for continuum:
@@ -171,9 +169,8 @@ def repack(cfile):
     continuum = np.zeros((nwave, ntemp), np.double)
 
     if dbtype not in ["hitran", "exomol", "kurucz"]:
-        print(f"\n{banner}\n  Error: Invalid database ({dbtype}), "
-              f"dbtype must be either hitran, exomol, or kurucz.\n{banner}\n")
-        sys.exit(0)
+        error = f"Invalid dbtype ({dbtype}), must be hitran, exomol, or kurucz"
+        raise ValueError(error)
 
     # Parse input files:
     nfiles = len(files)
@@ -188,10 +185,8 @@ def repack(cfile):
             states.append(st)
 
     if len(np.unique(mol)) > 1:
-        print(f"\n{banner}\n"
-               "  Error: All input files must correspond to the same molecule."
-              f"\n{banner}\n")
-        sys.exit(0)
+        error = "All input files must correspond to the same molecule"
+        raise ValueError(error)
     mol = mol[0]
 
     z = []  # Interpolator function for partition function per isotope
@@ -478,22 +473,17 @@ def sort(cfile):
     cfile: String
         A repack configuration file.
     """
-    banner = 70 * ":"
     args = parser(cfile)
     files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
         sthresh, pffile, chunksize, ncpu = args
 
     if dbtype != "exomol":
-        sys.exit(0)
+        return
 
     missing = [file for file in files if not os.path.exists(file)]
     if len(missing) > 0:
         miss_list = '\n  '.join(missing)
-        print(f"\n{banner}\n"
-               "  File(s) not Found Error: These files are missing:\n"
-              f"  {miss_list}"
-              f"\n{banner}\n")
-        sys.exit(0)
+        raise ValueError(f"These files are missing:\n {miss_list}")
 
     # Parse input files:
     nfiles = len(files)
@@ -555,7 +545,6 @@ def sort(cfile):
         lbl = u.lbl(files[i], dbtype, *lblargs[j])
 
         nlines = lbl.nlines
-        chunksize = int(nlines/ncpu) + 1
         chunks = np.linspace(0, nlines, ncpu+1, dtype=int)
 
         for k in range(ncpu):
