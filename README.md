@@ -28,15 +28,6 @@ Currently available databases:
 pip install lbl-repack
 ```
 
-Alternative (for developers), you can directly dowload the source code
-and install to your local machine with the following terminal commands:
-
-```shell
-git clone https://github.com/pcubillos/repack/
-cd repack
-python setup.py install
-```
-
 ### Getting Started
 
 The following example compresses the Exomol HCN line-transition data.  First, download the ExoMol HCN dataset (there is no need to unzip the files):
@@ -84,7 +75,12 @@ chunksize = 5000000
 ncpu = 5
 ```
 
-And run ``repack``, which will produce the following screen output:
+And run ``repack``:
+```shell
+repack repack_H2O.cfg
+```
+
+which will produce the following screen output:
 ```shell
 # Call the repack command-line executable for the HCN demo config file:
 repack repack_HCN.cfg
