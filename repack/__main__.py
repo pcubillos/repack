@@ -4,8 +4,8 @@
 # repack is open-source software under the MIT license (see LICENSE).
 
 import sys
-import warnings
 import time
+import warnings
 from datetime import date
 
 import repack

@@ -1,14 +1,14 @@
-# Copyright (c) 2017-2021 Patricio Cubillos and contributors.
+# Copyright (c) 2017-2024 Patricio Cubillos and contributors.
 # repack is open-source software under the MIT license (see LICENSE).
 
 __all__ = [
     'parser',
     'repack',
     'sort',
-    ]
+]
 
-import sys
 import os
+import bz2
 import struct
 import subprocess
 import configparser
@@ -138,25 +138,24 @@ def repack(cfile):
     cfile: String
         A repack configuration file.
     """
-    banner = 70 * ":"
     # Parse configuration file:
     args = parser(cfile)
     files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
         sthresh, pffile, chunksize, ncpu = args
 
     # Auto-detect sorted files:
-    files = [f.replace('.trans','.trans.sort')
-             if os.path.exists(f.replace('.trans','.trans.sort')) else f
-             for f in files]
+    files = [
+        f.replace('.trans','.trans.sort')
+        if os.path.exists(f.replace('.trans','.trans.sort')) else f
+        for f in files
+    ]
 
     missing = [file for file in files if not os.path.exists(file)]
     if len(missing) > 0:
         miss_list = '\n  '.join(missing)
-        print(f"\n{banner}\n"
-               "  File(s) not Found Error: These files are missing:\n"
-              f"  {miss_list}"
-              f"\n{banner}\n")
-        sys.exit(0)
+        raise ValueError(
+           f"  These files are missing:\n  {miss_list}"
+        )
 
     # Grid sampling for continuum:
     if dwn != 0 and dtemp != 0:
@@ -166,13 +165,12 @@ def repack(cfile):
         ntemp, nwave = 0, 0
 
     temperature = np.linspace(tmin, tmax, ntemp)
-    wnspec      = np.linspace(wnmin, wnmax, nwave)
+    wnspec = np.linspace(wnmin, wnmax, nwave)
     continuum = np.zeros((nwave, ntemp), np.double)
 
     if dbtype not in ["hitran", "exomol", "kurucz"]:
-        print(f"\n{banner}\n  Error: Invalid database ({dbtype}), "
-              f"dbtype must be either hitran, exomol, or kurucz.\n{banner}\n")
-        sys.exit(0)
+        error = f"Invalid dbtype ({dbtype}), must be hitran, exomol, or kurucz"
+        raise ValueError(error)
 
     # Parse input files:
     nfiles = len(files)
@@ -186,51 +184,42 @@ def repack(cfile):
         if st is not None:
             states.append(st)
 
-    # Uncompress states:
-    allstates = np.unique(states)
-    sdelete, sproc = [], []
-    for state in allstates:
-        if state.endswith(".bz2"):
-            proc = subprocess.Popen(["bzip2", "-dk", state])
-            sproc.append(proc)
-            sdelete.append(os.path.realpath(state).replace(".bz2", ""))
-
     if len(np.unique(mol)) > 1:
-        print(f"\n{banner}\n"
-               "  Error: All input files must correspond to the same molecule."
-              f"\n{banner}\n")
-        sys.exit(0)
+        error = "All input files must correspond to the same molecule"
+        raise ValueError(error)
     mol = mol[0]
 
-    z = []  # Interpolator function for partition function per isotope
+    # Read input partition-function file (if given):
+    z = []
     if pffile is not None:
-        # Read input partition-function file (if given):
-        pftemp, partf, isotopes = u.read_pf(pffile, dbtype="pyrat")
-        isotopes = list(isotopes)
-        for pfvalue in partf:
-            z.append(sip.interp1d(pftemp, pfvalue, kind='slinear'))
+        pf_temp, part_funcs, isotopes = u.read_pf(pffile, dbtype="pyrat")
+        z = [
+            sip.interp1d(pf_temp, pf_data, kind='slinear')
+            for pf_data in part_funcs
+        ]
     else:
-        isotopes = list(np.unique(isot))
+        isotopes = np.unique(isot)
+    isotopes = isotopes.tolist()
     niso = len(isotopes)
 
     # Isotopic abundance ratio and mass:
     iratio, imass = u.read_iso(mol, isotopes, dbtype)
     if np.any(iratio==0)  or np.any(imass==0):
-        raise ValueError('One or more isotopes have missing isotopic ratio '
-                         'or mass information in isotopes.dat file.')
+        raise ValueError(
+            'One or more isotopes have missing isotopic ratio '
+            'or mass information in isotopes.dat file'
+        )
 
-    s = suff[:]  # Make a copy
     # File indices for each wavenumber set:
+    wn_ranges = np.zeros((nfiles,2), int)
+    for i,suffix in enumerate(suff):
+        wn_ranges[i] = suffix.replace('_', '').split('-')
+    unique_wn_mins = np.unique(wn_ranges[:,0])
     wnset = []
-    while np.size(s) != 0:
-        suffix = s[np.argmin(s)]
-        idx = []
-        for i in range(nfiles):
-            if suff[i] == suffix:
-                idx.append(i)
-                s.remove(suffix)
+    for wn in unique_wn_mins:
+        idx = np.where(wn_ranges[:,0] == wn)[0].tolist()
         wnset.append(idx)
-    nsets = len(wnset)  # Number of wavenumber sets:
+    nsets = len(wnset)
 
     # Number of sets ahead to unzip:
     zbuffer = np.amin([2,nsets])
@@ -244,9 +233,6 @@ def repack(cfile):
                 proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
                 tproc[b].append(proc)
                 tdelete[b].append(files[idx].replace(".bz2", ""))
-
-    for proc in sproc:
-        proc.communicate()
 
     iso = np.zeros(nfiles, int)
     if dbtype == "exomol":
@@ -267,8 +253,7 @@ def repack(cfile):
             # States:
             elow, degen = u.read_states(states[i])
             lblargs.append([elow, degen, j])
-
-    else:  #dbtype in ["hitran", "kurucz"]:
+    else:
         lblargs = [[None, None, None]]  # Trust me
 
     # Turn isotopes from string to integer data type:
@@ -312,11 +297,10 @@ def repack(cfile):
             j = int(iso[wnset[i][k]])
             print(f"Reading: '{files[idx]}'.")
             lbl.append(u.lbl(files[idx], dbtype, *lblargs[j]))
-            # Find initial value in range:
-            i0 = lbl[k].bs(wnmin, 0,  lbl[k].nlines-1)
+            # Find indices of initial and final transitions in range:
+            i0 = lbl[k].bs(wnmin, 0, lbl[k].nlines-1)
             while i0 > 0 and lbl[k].getwn(i0-1) >= wnmin:
                 i0 -= 1
-            # Find final value in range:
             iN = lbl[k].bs(wnmax, i0, lbl[k].nlines-1)
             while iN < lbl[k].nlines-1 and lbl[k].getwn(iN+1) <= wnmin:
                 iN += 1
@@ -325,10 +309,10 @@ def repack(cfile):
 
         # Count lines, set target chunk size:
         nchunks = int(np.sum(nlines)/chunksize) + 1
-        target  = np.sum(nlines)/nchunks
-        chunk   = np.zeros((len(wnset[i]), nchunks+1), int)
+        target = np.sum(nlines)/nchunks
+        chunk = np.zeros((len(wnset[i]), nchunks+1), int)
         # First and last are easy:
-        chunk[:,      0] = istart
+        chunk[:,0] = istart
         chunk[:,nchunks] = chunk[:,0] + nlines
         # Easy-case split if only one file:
         if len(wnset[i]) == 1:
@@ -341,13 +325,14 @@ def repack(cfile):
                 wnchunk[n] = u.wnbalance(lbl, wnchunk[n-1], wnmax, target, zero)
                 for k in range(len(wnset[i])):
                     chunk[k,n] = lbl[k].bs(
-                        wnchunk[n], chunk[k,n-1], chunk[k,nchunks])
+                        wnchunk[n], chunk[k,n-1], chunk[k,nchunks],
+                    )
 
         # Proccess chunks:
         for n in range(nchunks):
-            gf   = np.array([])
+            gf = np.array([])
             Elow = np.array([])
-            wn   = np.array([])
+            wn = np.array([])
             iiso = np.array([], int)
             for k in range(len(wnset[i])):
                 # Read the LBL files by chunks:
@@ -366,8 +351,10 @@ def repack(cfile):
             zmin = np.array([z[j](tmin) for j in range(niso)])
             zmax = np.array([z[j](tmax) for j in range(niso)])
 
-            args = (wn, gf, Elow, iiso, tmin, tmax, zmin, zmax,
-                    imass, iratio, sthresh, n)
+            args = (
+                wn, gf, Elow, iiso, tmin, tmax, zmin, zmax,
+                imass, iratio, sthresh, n,
+            )
             task_queue.put(args)
 
         collect_wn = []
@@ -456,10 +443,6 @@ def repack(cfile):
     print(f"Successfully rewriten {dbtype} line-transition info into:\n"
           f"  '{lbl_out}'{cont_msg}.")
 
-    # Delete unzipped set:
-    for f in sdelete:
-        os.remove(f)
-
 
 def sort_worker(input, output):
     """
@@ -490,22 +473,17 @@ def sort(cfile):
     cfile: String
         A repack configuration file.
     """
-    banner = 70 * ":"
     args = parser(cfile)
     files, dbtype, outfile, tmin, tmax, dtemp, wnmin, wnmax, dwn, \
         sthresh, pffile, chunksize, ncpu = args
 
     if dbtype != "exomol":
-        sys.exit(0)
+        return
 
     missing = [file for file in files if not os.path.exists(file)]
     if len(missing) > 0:
         miss_list = '\n  '.join(missing)
-        print(f"\n{banner}\n"
-               "  File(s) not Found Error: These files are missing:\n"
-              f"  {miss_list}"
-              f"\n{banner}\n")
-        sys.exit(0)
+        raise ValueError(f"These files are missing:\n {miss_list}")
 
     # Parse input files:
     nfiles = len(files)
@@ -519,15 +497,6 @@ def sort(cfile):
         if st is not None:
             states.append(st)
 
-    # Uncompress states:
-    allstates = np.unique(states)
-    sdelete, sproc = [], []
-    for state in allstates:
-        if state.endswith(".bz2"):
-            proc = subprocess.Popen(["bzip2", "-dk", state])
-            sproc.append(proc)
-            sdelete.append(os.path.realpath(state).replace(".bz2", ""))
-
     isotopes = list(np.unique(isot))
     niso = len(isotopes)
 
@@ -539,9 +508,6 @@ def sort(cfile):
             proc = subprocess.Popen(["bzip2", "-dk", files[idx]])
             tproc.append(proc)
             tdelete.append(files[idx].replace(".bz2", ""))
-
-    for proc in sproc:
-        proc.communicate()
 
     iso = np.zeros(nfiles, int)
     for i in range(nfiles):
@@ -562,7 +528,6 @@ def sort(cfile):
     for i in range(ncpu):
         mp.Process(target=sort_worker, args=(task_queue, done_queue)).start()
 
-    zproc = []
     for i in range(nfiles):
         # Make sure current files are uncompressed:
         tproc[i].communicate()
@@ -580,7 +545,6 @@ def sort(cfile):
         lbl = u.lbl(files[i], dbtype, *lblargs[j])
 
         nlines = lbl.nlines
-        chunksize = int(nlines/ncpu) + 1
         chunks = np.linspace(0, nlines, ncpu+1, dtype=int)
 
         for k in range(ncpu):
@@ -598,12 +562,8 @@ def sort(cfile):
         lbl.file.seek(0)
         for k in range(nlines):
             lines[wn_sort[k]] = lbl.file.readline()
-        sort_file = lbl.lblfile.replace('trans.bz2', 'trans.sort')
-        with open(sort_file, 'w') as f:
+        with bz2.open(lbl.lblfile, 'wt') as f:
             f.writelines(lines)
-
-        proc = subprocess.Popen(["bzip2", "-z", sort_file])
-        zproc.append(proc)
 
         lbl.close()
         os.remove(tdelete[i])
@@ -611,10 +571,11 @@ def sort(cfile):
     for k in range(ncpu):
         task_queue.put('STOP')
 
-    # Delete unzipped set:
-    for state in sdelete:
-        os.remove(state)
-
-    for proc in zproc:
-        proc.communicate()
+    path, file = os.path.split(files[0])
+    molecule = mol[0]
+    with open(f'{path}/README_REPACK', 'a') as f:
+        f.write(
+            f'files have been sorted for {molecule} isotopes:\n'
+            f'{isotopes}\n'
+        )
 

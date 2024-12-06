@@ -1,8 +1,8 @@
 # repack
 Repack and Compress Line-transition Data for Radiative-tranfer Calculations
 
-[![Build Status](https://travis-ci.com/pcubillos/repack.svg?branch=master)](https://travis-ci.com/pcubillos/repack)
 [![PyPI](https://img.shields.io/pypi/v/lbl-repack.svg)](https://pypi.org/project/lbl-repack)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/lbl-repack.svg)](https://anaconda.org/conda-forge/lbl-repack)
 [![GitHub](https://img.shields.io/github/license/pcubillos/repack.svg?color=blue)](https://github.com/pcubillos/repack/blob/master/LICENSE)
 
 This code identifies the strong lines that dominate the spectrum from
@@ -26,15 +26,6 @@ Currently available databases:
 ```shell
 # Note that on PyPI ``repack``is indexed as ``lbl-repack``:
 pip install lbl-repack
-```
-
-Alternative (for developers), you can directly dowload the source code
-and install to your local machine with the following terminal commands:
-
-```shell
-git clone https://github.com/pcubillos/repack/
-cd repack
-python setup.py install
 ```
 
 ### Getting Started
@@ -84,7 +75,12 @@ chunksize = 5000000
 ncpu = 5
 ```
 
-And run ``repack``, which will produce the following screen output:
+And run ``repack``:
+```shell
+repack repack_H2O.cfg
+```
+
+which will produce the following screen output:
 ```shell
 # Call the repack command-line executable for the HCN demo config file:
 repack repack_HCN.cfg
