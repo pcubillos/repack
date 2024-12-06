@@ -19,7 +19,7 @@ def test_exomol_sort():
     subprocess.call('repack -sort exomol_sort.cfg'.split())
 
     e, g = repack.utils.read_states(states_file)
-    with bz2.open(lbl_file, "r") as file:
+    with bz2.open(lbl_file, "rt") as file:
         lines = file.readlines()
 
     nlines = len(lines)
