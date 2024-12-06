@@ -189,17 +189,17 @@ def repack(cfile):
         raise ValueError(error)
     mol = mol[0]
 
-    z = []  # Interpolator function for partition function per isotope
+    # Read input partition-function file (if given):
+    z = []
     if pffile is not None:
-        # Read input partition-function file (if given):
-        pftemp, partf, isotopes = u.read_pf(pffile, dbtype="pyrat")
-        for i,iso in enumerate(isotopes):
-            if iso in isot:
-                z.append(sip.interp1d(pftemp, partf[i], kind='slinear'))
-        iso_mask = np.isin(isotopes, isot)
-        isotopes = isotopes[iso_mask].tolist()
+        pf_temp, part_funcs, isotopes = u.read_pf(pffile, dbtype="pyrat")
+        z = [
+            sip.interp1d(pf_temp, pf_data, kind='slinear')
+            for pf_data in part_funcs
+        ]
     else:
-        isotopes = list(np.unique(isot))
+        isotopes = np.unique(isot)
+    isotopes = isotopes.tolist()
     niso = len(isotopes)
 
     # Isotopic abundance ratio and mass:

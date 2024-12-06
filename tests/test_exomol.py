@@ -12,8 +12,8 @@ os.chdir(ROOT+'tests')
 def test_missing(capfd, missfile):
     subprocess.call(['repack', missfile])
     capfd = capfd.readouterr()
-    assert """File(s) not Found Error: These files are missing:
-  data/14N-1H3__MiSSinG__00200-00300.trans.bz2""" in capfd.out
+    assert """ValueError:   These files are missing:
+  data/14N-1H3__MiSSinG__00200-00300.trans.bz2""" in capfd.err
 
 
 def test_exomol_single(capfd):
